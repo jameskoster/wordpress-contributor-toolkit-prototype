@@ -30,9 +30,11 @@ import {
   currentSiteFromStore,
   loadRestartSiteIds,
   loadSettings,
+  loadSidebarOpen,
   loadStoredSites,
   saveRestartSiteIds,
   saveSettings,
+  saveSidebarOpen,
   saveStoredSites,
 } from './storage'
 import type { AppSettings, Screen, Site, Toast, TrayId } from './types'
@@ -67,6 +69,7 @@ export default function App() {
   const prefersDark = usePrefersDarkScheme()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [tray, setTray] = useState<TrayId | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(loadSidebarOpen)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [setupStep, setSetupStep] = useState(0)
   const [pendingSite, setPendingSite] = useState<Site | null>(null)
@@ -351,6 +354,18 @@ export default function App() {
         watchPending={watchPending}
         onToggleServer={requestServerToggle}
         onToggleWatch={requestWatchToggle}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={
+          screen === 'site'
+            ? () => {
+                setSidebarOpen((current) => {
+                  const next = !current
+                  saveSidebarOpen(next)
+                  return next
+                })
+              }
+            : undefined
+        }
       >
         {screen === 'boot' ? (
           <div className="page-body is-centered">
@@ -433,6 +448,7 @@ export default function App() {
               watchPending={watchPending}
               onToggleServer={requestServerToggle}
               onToggleWatch={requestWatchToggle}
+              sidebarOpen={sidebarOpen}
             />
         ) : null}
       </AppPage>

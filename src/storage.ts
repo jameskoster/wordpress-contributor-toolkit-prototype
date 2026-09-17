@@ -5,6 +5,8 @@ const STORAGE_KEY = 'wct.sites'
 const TRAY_HEIGHT_KEY = 'wct.trayHeight'
 const SETTINGS_KEY = 'wct.settings'
 const RESTART_SITES_KEY = 'wct.restartSiteIds'
+const SIDEBAR_OPEN_KEY = 'wct.sidebarOpen'
+const SIDEBAR_SECTIONS_KEY = 'wct.sidebarSections'
 
 export type StoredSites = {
   sites: Site[]
@@ -148,4 +150,22 @@ export function saveRestartSiteIds(ids: string[]) {
   }
 
   window.localStorage.removeItem(RESTART_SITES_KEY)
+}
+
+export function loadSidebarOpen(): boolean {
+  try {
+    window.localStorage.removeItem(SIDEBAR_SECTIONS_KEY)
+    const raw = window.localStorage.getItem(SIDEBAR_OPEN_KEY)
+    if (raw === null) {
+      return true
+    }
+
+    return raw === 'true'
+  } catch {
+    return true
+  }
+}
+
+export function saveSidebarOpen(open: boolean) {
+  window.localStorage.setItem(SIDEBAR_OPEN_KEY, String(open))
 }

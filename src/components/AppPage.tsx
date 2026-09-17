@@ -1,6 +1,6 @@
 import { Breadcrumbs, Page } from '@wordpress/admin-ui'
-import { Button } from '@wordpress/ui'
-import { Icon, wordpress } from '@wordpress/icons'
+import { Button, IconButton } from '@wordpress/ui'
+import { Icon, drawerRight, wordpress } from '@wordpress/icons'
 import type { MouseEvent, ReactNode } from 'react'
 import type { Site } from '../types'
 import { AppRouter } from './AppRouter'
@@ -26,6 +26,8 @@ type AppPageProps = {
   watchPending?: boolean
   onToggleServer?: () => void
   onToggleWatch?: () => void
+  sidebarOpen?: boolean
+  onToggleSidebar?: () => void
 }
 
 export function AppPage({
@@ -47,6 +49,8 @@ export function AppPage({
   watchPending = false,
   onToggleServer,
   onToggleWatch,
+  sidebarOpen = true,
+  onToggleSidebar,
 }: AppPageProps) {
   const breadcrumbs = site ? (
     <div
@@ -93,6 +97,17 @@ export function AppPage({
       <Button variant="solid" tone="brand" size="compact" disabled>
         Review & submit changes
       </Button>
+      {onToggleSidebar ? (
+        <IconButton
+          icon={drawerRight}
+          label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          variant="minimal"
+          tone="neutral"
+          size="compact"
+          aria-pressed={sidebarOpen}
+          onClick={onToggleSidebar}
+        />
+      ) : null}
       <SiteMenu
         editorLabel={editorLabel}
         terminalLabel={terminalLabel}

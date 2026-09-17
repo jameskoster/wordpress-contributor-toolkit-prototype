@@ -149,11 +149,16 @@ function sidebarOverlapsTray(
   )
 }
 
-function useStickyUntilTrayOverlap() {
+function useStickyUntilTrayOverlap(active: boolean) {
   const sidebarRef = useRef<HTMLElement>(null)
   const [unstuck, setUnstuck] = useState(false)
 
   useLayoutEffect(() => {
+    if (!active) {
+      setUnstuck(false)
+      return
+    }
+
     const sidebar = sidebarRef.current
     if (!sidebar) {
       return
@@ -191,7 +196,7 @@ function useStickyUntilTrayOverlap() {
       mutationObserver?.disconnect()
       window.removeEventListener('resize', update)
     }
-  }, [])
+  }, [active])
 
   return { sidebarRef, unstuck }
 }
@@ -208,6 +213,7 @@ type SiteDashboardProps = {
   watchPending: boolean
   onToggleServer: () => void
   onToggleWatch: () => void
+  sidebarOpen: boolean
 }
 
 export function SiteDashboard({
@@ -222,6 +228,7 @@ export function SiteDashboard({
   watchPending,
   onToggleServer,
   onToggleWatch,
+  sidebarOpen,
 }: SiteDashboardProps) {
   const [prDraft, setPrDraft] = useState(site.patch ?? '12345')
   const [patchFile, setPatchFile] = useState('')
@@ -232,7 +239,7 @@ export function SiteDashboard({
   const [pathCopied, setPathCopied] = useState(false)
   const compileIndex = useRef(0)
   const pathCopiedTimer = useRef<number>(undefined)
-  const { sidebarRef, unstuck } = useStickyUntilTrayOverlap()
+  const { sidebarRef, unstuck } = useStickyUntilTrayOverlap(sidebarOpen)
 
   useEffect(() => {
     setPathCopied(false)
@@ -288,7 +295,12 @@ export function SiteDashboard({
   }, [site.watchOnline])
 
   return (
-    <div className="dashboard">
+    <div
+      className={
+        sidebarOpen ? 'dashboard' : 'dashboard is-sidebar-collapsed'
+      }
+    >
+      <div className="dashboard-main">
       <Stack direction="column" gap="2xl">
         <TracTicketCard
           ticket={site.ticket}
@@ -376,10 +388,16 @@ export function SiteDashboard({
           </CollapsibleCard.Content>
         </CollapsibleCard.Root>
       </Stack>
+      </div>
 
+      <div
+        className="dashboard-sidebar-slot"
+        inert={!sidebarOpen || undefined}
+      >
       <aside
         ref={sidebarRef}
         className={unstuck ? 'dashboard-sidebar is-unstuck' : 'dashboard-sidebar'}
+        aria-hidden={!sidebarOpen}
       >
         <Stack direction="column" gap="xl">
           <Stack direction="column" gap="md">
@@ -569,6 +587,7 @@ export function SiteDashboard({
           </Stack>
         </Stack>
       </aside>
+      </div>
 
       <ApplyPatchDialog
         value={pendingPatch}

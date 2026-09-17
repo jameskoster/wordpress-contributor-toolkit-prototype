@@ -127,27 +127,60 @@ textarea {
 }
 
 .dashboard {
+  --dashboard-sidebar-width: var(--wpds-dimension-surface-width-sm, 320px);
+  --dashboard-main-max: calc(
+    1080px - var(--dashboard-sidebar-width) - var(--wpds-dimension-gap-2xl, 24px)
+  );
   display: grid;
-  grid-template-columns: minmax(0, 1fr)
-    var(--wpds-dimension-surface-width-sm, 320px);
+  grid-template-columns: minmax(0, 1fr) var(--dashboard-sidebar-width);
   gap: var(--wpds-dimension-gap-2xl);
   align-items: start;
   width: 100%;
-  max-width: 1080px;
-  margin-inline: auto;
   padding-block-start: var(--wpds-dimension-padding-xl);
   padding-bottom: var(--app-tray-inset);
+  transition:
+    grid-template-columns var(--wpds-motion-duration-lg)
+      var(--wpds-motion-easing-expressive),
+    gap var(--wpds-motion-duration-lg) var(--wpds-motion-easing-expressive);
+}
+
+.dashboard.is-sidebar-collapsed {
+  grid-template-columns: minmax(0, 1fr) 0px;
+  gap: 0;
 }
 
 .dashboard > * {
   min-width: 0;
 }
 
+.dashboard-main {
+  width: 100%;
+  max-width: var(--dashboard-main-max);
+  justify-self: center;
+}
+
+.dashboard-sidebar-slot {
+  overflow-x: clip;
+  min-width: 0;
+}
+
+.dashboard.is-sidebar-collapsed .dashboard-sidebar-slot {
+  pointer-events: none;
+}
+
 .dashboard-sidebar {
   --dashboard-sidebar-sticky-top: var(--wpds-dimension-padding-lg, 16px);
   position: sticky;
   top: var(--dashboard-sidebar-sticky-top);
+  width: var(--dashboard-sidebar-width);
   min-width: 0;
+  transform: translateX(0);
+  transition: transform var(--wpds-motion-duration-lg)
+    var(--wpds-motion-easing-expressive);
+}
+
+.dashboard.is-sidebar-collapsed .dashboard-sidebar {
+  transform: translateX(100%);
 }
 
 .dashboard-sidebar.is-unstuck {
@@ -284,7 +317,9 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-tray-slot-inner {
+  .app-tray-slot-inner,
+  .dashboard,
+  .dashboard-sidebar {
     transition-duration: 0s;
   }
 }
@@ -563,11 +598,18 @@ textarea {
 }
 
 @media (max-width: 960px) {
-  .dashboard {
-    grid-template-columns: 1fr;
+  .dashboard,
+  .dashboard.is-sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dashboard-sidebar {
     position: static;
+    width: 100%;
+  }
+
+  .dashboard.is-sidebar-collapsed .dashboard-sidebar-slot {
+    height: 0;
+    overflow: hidden;
   }
 }

@@ -9,7 +9,7 @@ import type {
   TerminalApp,
 } from './types'
 
-export const DEFAULT_LOCATION = '/Users/jameskoster/sites'
+export const DEFAULT_LOCATION = '/Users/rileyhart/sites'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',

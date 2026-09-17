@@ -355,7 +355,7 @@ export function SiteDashboard({
                         if (!file) {
                           return
                         }
-                        const path = `/Users/jameskoster/Downloads/${file.name}`
+                        const path = `/Users/rileyhart/Downloads/${file.name}`
                         setPatchFile(path)
                         onApplyPatch(path)
                       }}

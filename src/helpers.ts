@@ -83,7 +83,7 @@ export function folderPathFromFiles(files: FileList | null) {
   }
 
   const folder = file.webkitRelativePath.split('/')[0]
-  return `/Users/jameskoster/${folder || 'sites'}`
+  return `/Users/rileyhart/${folder || 'sites'}`
 }
 
 export function slugifySiteName(name: string) {

@@ -154,6 +154,8 @@ export function SettingsDialog({
       return
     }
 
+    const panelsRoot = panelsEl
+
     function measurePanelHeight(panel: HTMLElement) {
       const isInactive =
         panel.hidden || panel.classList.contains('settings-panel-inactive')
@@ -171,11 +173,11 @@ export function SettingsDialog({
         'position: absolute',
         'visibility: hidden',
         'pointer-events: none',
-        `width: ${panelsEl.clientWidth}px`,
+        `width: ${panelsRoot.clientWidth}px`,
         'display: block',
         'height: auto',
       ].join(';')
-      panelsEl.appendChild(clone)
+      panelsRoot.appendChild(clone)
       const height = clone.offsetHeight
       clone.remove()
       return height
@@ -183,7 +185,7 @@ export function SettingsDialog({
 
     function measure() {
       const panels = [
-        ...panelsEl.querySelectorAll<HTMLElement>(':scope > .settings-panel'),
+        ...panelsRoot.querySelectorAll<HTMLElement>(':scope > .settings-panel'),
       ]
       const next = Math.ceil(
         Math.max(0, ...panels.map((panel) => measurePanelHeight(panel)))

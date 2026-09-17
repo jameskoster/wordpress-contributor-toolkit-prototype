@@ -162,7 +162,7 @@ function useStickyUntilTrayOverlap() {
     const root = sidebar.closest('.app-root')
     const scrollParent = getScrollParent(sidebar)
 
-    function update() {
+    const update = () => {
       const next = sidebarOverlapsTray(sidebar, scrollParent, root)
       setUnstuck((current) => (current === next ? current : next))
     }
@@ -176,10 +176,12 @@ function useStickyUntilTrayOverlap() {
     const mutationObserver = root
       ? new MutationObserver(update)
       : null
-    mutationObserver?.observe(root, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
+    if (root) {
+      mutationObserver?.observe(root, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+    }
 
     window.addEventListener('resize', update)
     update()

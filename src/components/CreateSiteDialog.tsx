@@ -48,10 +48,8 @@ export function CreateSiteDialog({
         if (
           !next &&
           showProgress &&
-          (eventDetails.reason === 'escapeKey' ||
-            eventDetails.reason === 'outsidePress' ||
-            eventDetails.reason === 'closePress' ||
-            eventDetails.reason === 'focusOut')
+          eventDetails.reason !== 'imperative-action' &&
+          eventDetails.reason !== 'none'
         ) {
           eventDetails.cancel()
           return

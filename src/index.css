@@ -146,7 +146,8 @@ textarea {
 .site-workspace-main {
   flex: 1;
   min-width: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-inline: var(--wpds-dimension-padding-2xl, 24px);
   scroll-padding-bottom: var(--app-tray-inset);
 }

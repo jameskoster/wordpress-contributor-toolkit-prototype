@@ -7,8 +7,9 @@ import {
   type View,
 } from '@wordpress/dataviews'
 import { Page } from '@wordpress/admin-ui'
-import { Button, Text } from '@wordpress/ui'
+import { Button, Text, VisuallyHidden } from '@wordpress/ui'
 import type { Site } from '../types'
+import { ProcessStatus } from './ProcessMenu'
 
 const fields: Field<Site>[] = [
   {
@@ -17,6 +18,15 @@ const fields: Field<Site>[] = [
     label: 'Name',
     enableHiding: false,
     enableGlobalSearch: true,
+    render: ({ item }) => (
+      <span className="sites-sidebar-name">
+        <ProcessStatus online={item.serverOnline} />
+        <VisuallyHidden render={<span />}>
+          {item.serverOnline ? 'Server running. ' : 'Server stopped. '}
+        </VisuallyHidden>
+        <span className="sites-sidebar-name-text">{item.name}</span>
+      </span>
+    ),
   },
   {
     id: 'path',
@@ -67,6 +77,8 @@ type SitesSidebarProps = {
   onOpenInEditor: (site: Site) => void
   onOpenInTerminal: (site: Site) => void
   onDelete: (site: Site) => void
+  onToggleServer: (site: Site) => void
+  onToggleWatch: (site: Site) => void
 }
 
 export function SitesSidebar({
@@ -83,6 +95,8 @@ export function SitesSidebar({
   onOpenInEditor,
   onOpenInTerminal,
   onDelete,
+  onToggleServer,
+  onToggleWatch,
 }: SitesSidebarProps) {
   const [view, setView] = useState<View>(defaultView)
   const records = useMemo(() => [...sites].reverse(), [sites])
@@ -92,6 +106,28 @@ export function SitesSidebar({
   )
   const actions = useMemo<Action<Site>[]>(
     () => [
+      {
+        id: 'toggle-server',
+        label: ([item]) =>
+          item?.serverOnline
+            ? 'Stop development server'
+            : 'Start development server',
+        callback: ([item]) => {
+          if (item) {
+            onToggleServer(item)
+          }
+        },
+      },
+      {
+        id: 'toggle-watch',
+        label: ([item]) =>
+          item?.watchOnline ? 'Stop build watch' : 'Start build watch',
+        callback: ([item]) => {
+          if (item) {
+            onToggleWatch(item)
+          }
+        },
+      },
       {
         id: 'rename',
         label: 'Rename…',
@@ -164,6 +200,8 @@ export function SitesSidebar({
       onOpenInTerminal,
       onRename,
       onShowInFinder,
+      onToggleServer,
+      onToggleWatch,
       onUpdateTrunk,
       terminalLabel,
     ]

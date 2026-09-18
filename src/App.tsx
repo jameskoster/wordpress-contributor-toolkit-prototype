@@ -66,8 +66,8 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const [setupStep, setSetupStep] = useState(0)
   const [pendingSite, setPendingSite] = useState<Site | null>(null)
-  const [serverPending, setServerPending] = useState(false)
-  const [watchPending, setWatchPending] = useState(false)
+  const [serverPendingId, setServerPendingId] = useState<string | null>(null)
+  const [watchPendingId, setWatchPendingId] = useState<string | null>(null)
   const serverTimer = useRef<number>(undefined)
   const watchTimer = useRef<number>(undefined)
   const settingsRef = useRef(settings)
@@ -151,13 +151,6 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    window.clearTimeout(serverTimer.current)
-    window.clearTimeout(watchTimer.current)
-    setServerPending(false)
-    setWatchPending(false)
-  }, [site?.id])
-
-  useEffect(() => {
     if (screen !== 'site') {
       setTray(null)
       setDeleteOpen(false)
@@ -235,37 +228,37 @@ export default function App() {
   }
 
   function startServerProcess(id: string, stop = false) {
-    setServerPending(true)
+    setServerPendingId(id)
     serverTimer.current = window.setTimeout(() => {
       patchSite(id, { serverOnline: !stop })
       toast(stop ? 'Development server stopped.' : 'Development server started.')
-      setServerPending(false)
+      setServerPendingId(null)
     }, stop ? 800 : 1400)
   }
 
   function startWatchProcess(id: string, stop = false) {
-    setWatchPending(true)
+    setWatchPendingId(id)
     watchTimer.current = window.setTimeout(() => {
       patchSite(id, { watchOnline: !stop })
       toast(stop ? 'Build watch stopped.' : 'Build watch started.')
-      setWatchPending(false)
+      setWatchPendingId(null)
     }, stop ? 700 : 1100)
   }
 
-  function requestServerToggle() {
-    if (!site || serverPending) {
+  function requestServerToggle(target: Site) {
+    if (serverPendingId) {
       return
     }
 
-    startServerProcess(site.id, site.serverOnline)
+    startServerProcess(target.id, target.serverOnline)
   }
 
-  function requestWatchToggle() {
-    if (!site || watchPending) {
+  function requestWatchToggle(target: Site) {
+    if (watchPendingId) {
       return
     }
 
-    startWatchProcess(site.id, site.watchOnline)
+    startWatchProcess(target.id, target.watchOnline)
   }
 
   function consumeRestart(id: string) {
@@ -281,29 +274,34 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (screen !== 'site' || !site) {
+    if (screen !== 'site') {
       return
     }
 
-    const restart = restartSiteIds.includes(site.id)
+    const currentSite = siteRef.current
+    if (!currentSite) {
+      return
+    }
+
+    const restart = restartSiteIds.includes(currentSite.id)
     const currentSettings = settingsRef.current
     const shouldStartServer =
-      !site.serverOnline && (currentSettings.autoStartServer || restart)
+      !currentSite.serverOnline && (currentSettings.autoStartServer || restart)
     const shouldStartWatch =
-      !site.watchOnline && (currentSettings.autoStartWatch || restart)
+      !currentSite.watchOnline && (currentSettings.autoStartWatch || restart)
 
     if (!shouldStartServer && !shouldStartWatch) {
       return
     }
 
-    consumeRestart(site.id)
+    consumeRestart(currentSite.id)
     if (shouldStartServer) {
-      startServerProcess(site.id)
+      startServerProcess(currentSite.id)
     }
     if (shouldStartWatch) {
-      startWatchProcess(site.id)
+      startWatchProcess(currentSite.id)
     }
-  }, [screen, site?.id])
+  }, [screen])
 
   return (
     <ThemeProvider
@@ -352,6 +350,8 @@ export default function App() {
               )
             }
             onDelete={requestDelete}
+            onToggleServer={requestServerToggle}
+            onToggleWatch={requestWatchToggle}
           />
           <div className="site-shell-main">
             <AppPage
@@ -373,10 +373,10 @@ export default function App() {
                 )
               }
               onDelete={() => setDeleteOpen(true)}
-              serverPending={serverPending}
-              watchPending={watchPending}
-              onToggleServer={requestServerToggle}
-              onToggleWatch={requestWatchToggle}
+              serverPending={serverPendingId === site.id}
+              watchPending={watchPendingId === site.id}
+              onToggleServer={() => requestServerToggle(site)}
+              onToggleWatch={() => requestWatchToggle(site)}
               sidebarOpen={sidebarOpen}
               onToggleSidebar={() => {
                 setSidebarOpen((current) => {
@@ -414,10 +414,10 @@ export default function App() {
                         : `Applied ${value} and rebuilt.`
                     )
                   }}
-                  serverPending={serverPending}
-                  watchPending={watchPending}
-                  onToggleServer={requestServerToggle}
-                  onToggleWatch={requestWatchToggle}
+                  serverPending={serverPendingId === site.id}
+                  watchPending={watchPendingId === site.id}
+                  onToggleServer={() => requestServerToggle(site)}
+                  onToggleWatch={() => requestWatchToggle(site)}
                   sidebarOpen={sidebarOpen}
                 />
               </div>

@@ -1,6 +1,19 @@
 import { Button, Menu } from '@wordpress/ui'
 import { Icon, chevronDown } from '@wordpress/icons'
 
+type ProcessStatusProps = {
+  online: boolean
+}
+
+export function ProcessStatus({ online }: ProcessStatusProps) {
+  return (
+    <span
+      className={online ? 'process-status is-online' : 'process-status'}
+      aria-hidden="true"
+    />
+  )
+}
+
 type ProcessMenuProps = {
   online: boolean
   pending: boolean
@@ -33,11 +46,7 @@ export function ProcessMenu({
             size="compact"
             aria-label={label}
           >
-            <span
-              className={
-                online ? 'process-status is-online' : 'process-status'
-              }
-            />
+            <ProcessStatus online={online} />
             {label}
             <Icon icon={chevronDown} size={16} />
           </Button>

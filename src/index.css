@@ -135,6 +135,20 @@ textarea {
   background: transparent;
 }
 
+.sites-sidebar-name {
+  display: flex;
+  align-items: center;
+  gap: var(--wpds-dimension-gap-sm, 8px);
+  min-width: 0;
+}
+
+.sites-sidebar-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sites-sidebar-path {
   display: block;
   max-width: 100%;
@@ -222,6 +236,7 @@ textarea {
 }
 
 .process-status {
+  display: block;
   flex-shrink: 0;
   width: var(--wpds-dimension-size-4xs);
   height: var(--wpds-dimension-size-4xs);

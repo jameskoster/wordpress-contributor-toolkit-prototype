@@ -76,6 +76,8 @@ export function getThemeColorSeeds(
   }
 }
 
+export const PLACEHOLDER_HOME = '/Users/rileyhart'
+
 export function folderPathFromFiles(files: FileList | null) {
   const file = files?.[0]
   if (!file) {
@@ -83,7 +85,7 @@ export function folderPathFromFiles(files: FileList | null) {
   }
 
   const folder = file.webkitRelativePath.split('/')[0]
-  return `/Users/rileyhart/${folder || 'sites'}`
+  return `${PLACEHOLDER_HOME}/${folder || 'sites'}`
 }
 
 export function slugifySiteName(name: string) {

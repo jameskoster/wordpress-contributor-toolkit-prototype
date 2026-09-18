@@ -76,23 +76,10 @@ textarea {
   background: var(--wpds-color-background-surface-neutral, #fcfcfc);
 }
 
-.app-page {
-  flex: 1;
+.app-root .app-page {
+  flex: 1 1 0;
   min-height: 0;
   height: auto;
-}
-
-.app-page-breadcrumbs {
-  display: contents;
-}
-
-/* Unlayered `a` resets beat `@layer wp-ui` Text variants. Revert so
-   admin-ui Breadcrumbs links keep body-lg. */
-.app-page-breadcrumbs a {
-  font-family: revert-layer;
-  font-size: revert-layer;
-  font-weight: revert-layer;
-  line-height: revert-layer;
 }
 
 .page-body {
@@ -107,23 +94,61 @@ textarea {
   justify-content: center;
 }
 
-.sites-list {
+.site-shell {
   display: flex;
-  flex-direction: column;
   flex: 1;
   min-height: 0;
-  width: 100%;
-  max-width: 1080px;
-  margin-inline: auto;
-  padding-block-start: var(--wpds-dimension-padding-xl);
 }
 
-.sites-list-path {
+.site-shell-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sites-sidebar {
+  --sites-sidebar-width: var(--wpds-dimension-surface-width-sm, 320px);
+  flex-shrink: 0;
+  width: var(--sites-sidebar-width);
+  min-height: 0;
+  align-self: stretch;
+  height: auto;
+  border-inline-end: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral-weak, #f0f0f0);
+  background: var(--wpds-color-background-surface-neutral, #fcfcfc);
+}
+
+.sites-sidebar-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.sites-sidebar-list .dataviews-wrapper {
+  --wp-dataviews-color-background: transparent;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.sites-sidebar-path {
   display: block;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.site-workspace-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding-inline: var(--wpds-dimension-padding-2xl, 24px);
+  scroll-padding-bottom: var(--app-tray-inset);
 }
 
 .dashboard {
@@ -160,11 +185,11 @@ textarea {
 }
 
 .dashboard-sidebar-slot {
-  overflow-x: clip;
   min-width: 0;
 }
 
 .dashboard.is-sidebar-collapsed .dashboard-sidebar-slot {
+  overflow-x: clip;
   pointer-events: none;
 }
 
@@ -218,10 +243,6 @@ textarea {
   border: var(--wpds-border-width-xs) solid
     var(--wpds-color-stroke-surface-neutral-weak);
   border-radius: var(--wpds-border-radius-lg);
-}
-
-.app-page > :last-child {
-  scroll-padding-bottom: var(--app-tray-inset);
 }
 
 .app-tray-shell {
@@ -331,7 +352,7 @@ textarea {
   padding: var(--wpds-dimension-padding-sm, 8px)
     var(--wpds-dimension-padding-2xl, 24px);
   border-top: 1px solid var(--wpds-color-stroke-surface-neutral-weak, #f0f0f0);
-  background: var(--wpds-color-background-surface-neutral-strong, #fff);
+  background: var(--wpds-color-background-surface-neutral, #fcfcfc);
 }
 
 .app-footer-actions,

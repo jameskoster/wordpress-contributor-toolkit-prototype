@@ -21,7 +21,7 @@ import {
   Text,
 } from '@wordpress/ui'
 import { globe, offline, seen, table, unseen, wordpress } from '@wordpress/icons'
-import { formatTimeAgo } from '../helpers'
+import { formatTimeAgo, PLACEHOLDER_HOME } from '../helpers'
 import { checkoutLabel } from '../settings'
 import type { Site } from '../types'
 import { ApplyPatchDialog } from './ApplyPatchDialog'
@@ -367,7 +367,7 @@ export function SiteDashboard({
                         if (!file) {
                           return
                         }
-                        const path = `/Users/rileyhart/Downloads/${file.name}`
+                        const path = `${PLACEHOLDER_HOME}/Downloads/${file.name}`
                         setPatchFile(path)
                         onApplyPatch(path)
                       }}

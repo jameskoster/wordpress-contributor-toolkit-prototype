@@ -1,4 +1,4 @@
-export type Screen = 'boot' | 'downloading' | 'sites' | 'site'
+export type Screen = 'boot' | 'site'
 
 export type AdminTheme = 'light' | 'dark' | 'system' | 'custom'
 

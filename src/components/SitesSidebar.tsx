@@ -6,7 +6,8 @@ import {
   type Field,
   type View,
 } from '@wordpress/dataviews'
-import { Card, Text } from '@wordpress/ui'
+import { Page } from '@wordpress/admin-ui'
+import { Button, Text } from '@wordpress/ui'
 import type { Site } from '../types'
 
 const fields: Field<Site>[] = [
@@ -23,51 +24,42 @@ const fields: Field<Site>[] = [
     label: 'Local path',
     enableGlobalSearch: true,
     render: ({ item }) => (
-      <Text variant="body-sm" className="muted-label sites-list-path">
+      <Text variant="body-sm" className="muted-label sites-sidebar-path">
         {item.path}
       </Text>
     ),
   },
-  {
-    id: 'created',
-    type: 'text',
-    label: 'Created',
-  },
-  {
-    id: 'ticket',
-    type: 'text',
-    label: 'Ticket',
-    getValue: ({ item }) => item.ticket ?? '',
-    render: ({ item }) => item.ticket ?? '—',
-  },
 ]
 
 const defaultView: View = {
-  type: 'table',
+  type: 'list',
   search: '',
   page: 1,
-  perPage: 20,
+  perPage: 100,
   titleField: 'name',
   descriptionField: 'path',
-  fields: ['created', 'ticket'],
+  showMedia: false,
+  fields: [],
   layout: {
-    density: 'comfortable',
+    density: 'balanced',
   },
 }
 
 const defaultLayouts = {
-  table: {
+  list: {
     layout: {
-      density: 'comfortable',
+      density: 'balanced',
     },
   },
 } as const
 
-type SitesListProps = {
+type SitesSidebarProps = {
   sites: Site[]
+  selectedSiteId: string
   editorLabel: string
   terminalLabel: string
-  onOpenSite: (site: Site) => void
+  onSelectSite: (site: Site) => void
+  onCreateSite: () => void
   onRename: (site: Site) => void
   onCopyPath: (site: Site) => void
   onShowInFinder: (site: Site) => void
@@ -77,11 +69,13 @@ type SitesListProps = {
   onDelete: (site: Site) => void
 }
 
-export function SitesList({
+export function SitesSidebar({
   sites,
+  selectedSiteId,
   editorLabel,
   terminalLabel,
-  onOpenSite,
+  onSelectSite,
+  onCreateSite,
   onRename,
   onCopyPath,
   onShowInFinder,
@@ -89,7 +83,7 @@ export function SitesList({
   onOpenInEditor,
   onOpenInTerminal,
   onDelete,
-}: SitesListProps) {
+}: SitesSidebarProps) {
   const [view, setView] = useState<View>(defaultView)
   const records = useMemo(() => [...sites].reverse(), [sites])
   const { data, paginationInfo } = useMemo(
@@ -175,26 +169,51 @@ export function SitesList({
     ]
   )
 
+  function handleSelectionChange(ids: string[]) {
+    const nextId = ids.find((id) => id !== selectedSiteId) ?? ids[0]
+    if (!nextId) {
+      return
+    }
+
+    const next = sites.find((item) => item.id === nextId)
+    if (next) {
+      onSelectSite(next)
+    }
+  }
+
   return (
-    <div className="sites-list">
-      <Card.Root>
-        <Card.Content style={{ height: 'auto', minHeight: 0 }}>
-          <Card.FullBleed>
-            <DataViews
-              data={data}
-              fields={fields}
-              view={view}
-              onChangeView={setView}
-              paginationInfo={paginationInfo}
-              defaultLayouts={defaultLayouts}
-              actions={actions}
-              searchLabel="Search sites"
-              onClickItem={onOpenSite}
-              empty={<Text variant="body-md">No sites match this search.</Text>}
-            />
-          </Card.FullBleed>
-        </Card.Content>
-      </Card.Root>
-    </div>
+    <Page
+      className="sites-sidebar"
+      title="My sites"
+      actions={
+        <Button
+          variant="solid"
+          tone="brand"
+          size="compact"
+          onClick={onCreateSite}
+        >
+          Create new site
+        </Button>
+      }
+      showSidebarToggle={false}
+      hasPadding={false}
+      ariaLabel="My sites"
+    >
+      <div className="sites-sidebar-list">
+        <DataViews
+          data={data}
+          fields={fields}
+          view={view}
+          onChangeView={setView}
+          paginationInfo={paginationInfo}
+          defaultLayouts={defaultLayouts}
+          actions={actions}
+          selection={[selectedSiteId]}
+          onChangeSelection={handleSelectionChange}
+        >
+          <DataViews.Layout />
+        </DataViews>
+      </div>
+    </Page>
   )
 }

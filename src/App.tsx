@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ThemeProvider } from '@wordpress/theme'
-import {
-  Button,
-  EmptyState,
-  Notice,
-  Spinner,
-  Stack,
-  Text,
-} from '@wordpress/ui'
+import { Button, EmptyState, Notice } from '@wordpress/ui'
 import { globe } from '@wordpress/icons'
 import { AppFooter } from './components/AppFooter'
 import { AppPage } from './components/AppPage'
@@ -17,7 +10,7 @@ import { ReviewChangesDialog } from './components/ReviewChangesDialog'
 import { SettingsDialog } from './components/SettingsDialog'
 import { DeleteDialog, FeedbackDialog, RenameDialog } from './components/SimpleDialogs'
 import { SiteDashboard } from './components/SiteDashboard'
-import { SitesList } from './components/SitesList'
+import { SitesSidebar } from './components/SitesSidebar'
 import {
   formatDate,
   getThemeColorSeeds,
@@ -119,6 +112,10 @@ export default function App() {
   }
 
   function handleCreate(name: string, location: string) {
+    if (pendingSite) {
+      return
+    }
+
     const nextSite: Site = {
       id: crypto.randomUUID(),
       name,
@@ -136,10 +133,8 @@ export default function App() {
       adminUsername: settings.adminUsername,
       adminPassword: settings.adminPassword,
     }
-    setCreateOpen(false)
     setPendingSite(nextSite)
     setSetupStep(0)
-    setScreen('downloading')
   }
 
   useEffect(() => {
@@ -172,7 +167,7 @@ export default function App() {
   }, [screen])
 
   useEffect(() => {
-    if (screen !== 'downloading' || !pendingSite) {
+    if (!pendingSite) {
       return
     }
 
@@ -183,12 +178,14 @@ export default function App() {
       }
 
       upsertSite(pendingSite)
+      setPendingSite(null)
+      setCreateOpen(false)
       setScreen('site')
       toast(`${pendingSite.name} created`, 'success')
     }, SETUP_STEPS[setupStep].duration)
 
     return () => window.clearTimeout(timeout)
-  }, [screen, setupStep, pendingSite])
+  }, [setupStep, pendingSite])
 
   useEffect(() => {
     saveStoredSites({ sites, currentId: site?.id ?? null })
@@ -318,88 +315,30 @@ export default function App() {
       })}
     >
       <div className="app-root">
-      <AppPage
-        site={screen === 'site' ? site : null}
-        hasPadding={screen === 'site' || screen === 'sites'}
-        onGoToSites={() => setScreen('sites')}
-        onCreateSite={
-          screen === 'sites' ? () => setCreateOpen(true) : undefined
-        }
-        onRename={() => {
-          if (site) {
-            setRenameOpen(true)
-          }
-        }}
-        onCopyPath={() => {
-          if (site) {
-            copySitePath(site)
-          }
-        }}
-        onShowInFinder={() => toast('Showed site folder in Finder.')}
-        onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
-        editorLabel={editorLabel(settings.editor)}
-        terminalLabel={terminalLabel(settings.terminal)}
-        onOpenInEditor={() =>
-          toast(`Opened site directory in ${editorLabel(settings.editor)}.`)
-        }
-        onOpenInTerminal={() =>
-          toast(`Opened site directory in ${terminalLabel(settings.terminal)}.`)
-        }
-        onDelete={() => {
-          if (site) {
-            setDeleteOpen(true)
-          }
-        }}
-        serverPending={serverPending}
-        watchPending={watchPending}
-        onToggleServer={requestServerToggle}
-        onToggleWatch={requestWatchToggle}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={
-          screen === 'site'
-            ? () => {
-                setSidebarOpen((current) => {
-                  const next = !current
-                  saveSidebarOpen(next)
-                  return next
-                })
-              }
-            : undefined
-        }
-      >
-        {screen === 'boot' ? (
-          <div className="page-body is-centered">
-            <EmptyState.Root>
-              <EmptyState.Icon icon={globe} />
-              <EmptyState.Title>No sites</EmptyState.Title>
-              <EmptyState.Description>
-                Create your first site to begin contributing
-              </EmptyState.Description>
-              <EmptyState.Actions>
-                <Button onClick={() => setCreateOpen(true)}>Create site</Button>
-              </EmptyState.Actions>
-            </EmptyState.Root>
-          </div>
-        ) : null}
+      {screen === 'boot' ? (
+        <div className="page-body is-centered">
+          <EmptyState.Root>
+            <EmptyState.Icon icon={globe} />
+            <EmptyState.Title>No sites</EmptyState.Title>
+            <EmptyState.Description>
+              Create your first site to begin contributing
+            </EmptyState.Description>
+            <EmptyState.Actions>
+              <Button onClick={() => setCreateOpen(true)}>Create site</Button>
+            </EmptyState.Actions>
+          </EmptyState.Root>
+        </div>
+      ) : null}
 
-        {screen === 'downloading' ? (
-          <div className="page-body is-centered">
-            <Stack direction="column" gap="md" align="center">
-              <Spinner />
-              <Text variant="body-md">{SETUP_STEPS[setupStep].label}</Text>
-            </Stack>
-          </div>
-        ) : null}
-
-        {screen === 'sites' ? (
-          <SitesList
+      {screen === 'site' && site ? (
+        <div className="site-shell">
+          <SitesSidebar
             sites={sites}
+            selectedSiteId={site.id}
             editorLabel={editorLabel(settings.editor)}
             terminalLabel={terminalLabel(settings.terminal)}
-            onOpenSite={(next) => {
-              setSite(next)
-              setScreen('site')
-            }}
+            onSelectSite={setSite}
+            onCreateSite={() => setCreateOpen(true)}
             onRename={requestRename}
             onCopyPath={copySitePath}
             onShowInFinder={() => toast('Showed site folder in Finder.')}
@@ -414,67 +353,102 @@ export default function App() {
             }
             onDelete={requestDelete}
           />
-        ) : null}
-
-        {screen === 'site' && site ? (
-          <SiteDashboard
+          <div className="site-shell-main">
+            <AppPage
               site={site}
-              onCopyPath={() => {
-                void navigator.clipboard?.writeText(site.path)
-              }}
-              onLinkTicket={(ticket) => {
-                upsertSite({ ...site, ticket })
+              onRename={() => setRenameOpen(true)}
+              onCopyPath={() => copySitePath(site)}
+              onShowInFinder={() => toast('Showed site folder in Finder.')}
+              onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
+              editorLabel={editorLabel(settings.editor)}
+              terminalLabel={terminalLabel(settings.terminal)}
+              onOpenInEditor={() =>
                 toast(
-                  settings.wordpressOrgUsername
-                    ? `Linked ticket ${ticket} as ${settings.wordpressOrgUsername}.`
-                    : `Linked ticket ${ticket}.`
+                  `Opened site directory in ${editorLabel(settings.editor)}.`
                 )
-              }}
-              onUnlinkTicket={() => {
-                upsertSite({ ...site, ticket: null })
-                toast('Unlinked ticket.')
-              }}
-              onRefreshPullRequests={() => toast('Pull requests refreshed.')}
-              onRefreshAttachments={() => toast('Attachments refreshed.')}
-              onApplyPatch={(value) => {
-                upsertSite({ ...site, patch: value })
+              }
+              onOpenInTerminal={() =>
                 toast(
-                  settings.githubUsername
-                    ? `Applied ${value} as ${settings.githubUsername} and rebuilt.`
-                    : `Applied ${value} and rebuilt.`
+                  `Opened site directory in ${terminalLabel(settings.terminal)}.`
                 )
-              }}
+              }
+              onDelete={() => setDeleteOpen(true)}
               serverPending={serverPending}
               watchPending={watchPending}
               onToggleServer={requestServerToggle}
               onToggleWatch={requestWatchToggle}
               sidebarOpen={sidebarOpen}
+              onToggleSidebar={() => {
+                setSidebarOpen((current) => {
+                  const next = !current
+                  saveSidebarOpen(next)
+                  return next
+                })
+              }}
+            >
+              <div className="site-workspace-main">
+                <SiteDashboard
+                  site={site}
+                  onCopyPath={() => {
+                    void navigator.clipboard?.writeText(site.path)
+                  }}
+                  onLinkTicket={(ticket) => {
+                    upsertSite({ ...site, ticket })
+                    toast(
+                      settings.wordpressOrgUsername
+                        ? `Linked ticket ${ticket} as ${settings.wordpressOrgUsername}.`
+                        : `Linked ticket ${ticket}.`
+                    )
+                  }}
+                  onUnlinkTicket={() => {
+                    upsertSite({ ...site, ticket: null })
+                    toast('Unlinked ticket.')
+                  }}
+                  onRefreshPullRequests={() => toast('Pull requests refreshed.')}
+                  onRefreshAttachments={() => toast('Attachments refreshed.')}
+                  onApplyPatch={(value) => {
+                    upsertSite({ ...site, patch: value })
+                    toast(
+                      settings.githubUsername
+                        ? `Applied ${value} as ${settings.githubUsername} and rebuilt.`
+                        : `Applied ${value} and rebuilt.`
+                    )
+                  }}
+                  serverPending={serverPending}
+                  watchPending={watchPending}
+                  onToggleServer={requestServerToggle}
+                  onToggleWatch={requestWatchToggle}
+                  sidebarOpen={sidebarOpen}
+                />
+              </div>
+            </AppPage>
+            <BottomTray tray={tray} site={site} onClose={() => setTray(null)} />
+            <AppFooter
+              showTrays
+              activeTray={tray}
+              onToggleTray={(next) =>
+                setTray((current) => (current === next ? null : next))
+              }
+              onGiveFeedback={() => setFeedbackOpen(true)}
+              onOpenSettings={() => setSettingsOpen(true)}
             />
-        ) : null}
-      </AppPage>
-
-      {screen === 'site' && site ? (
-        <BottomTray tray={tray} site={site} onClose={() => setTray(null)} />
+          </div>
+        </div>
       ) : null}
 
-      {screen === 'site' || screen === 'sites' ? (
-        <AppFooter
-          showTrays={screen === 'site'}
-          activeTray={tray}
-          onToggleTray={(next) => setTray((current) => (current === next ? null : next))}
-          onGiveFeedback={() => setFeedbackOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
-        />
-      ) : null}
-
-      {screen === 'boot' || screen === 'sites' ? (
-        <CreateSiteDialog
-          open={createOpen}
-          defaultLocation={settings.defaultLocation}
-          onOpenChange={setCreateOpen}
-          onCreate={handleCreate}
-        />
-      ) : null}
+      <CreateSiteDialog
+        open={createOpen}
+        defaultLocation={settings.defaultLocation}
+        creating={Boolean(pendingSite)}
+        statusMessage={SETUP_STEPS[setupStep].label}
+        onOpenChange={(open) => {
+          if (open || pendingSite) {
+            return
+          }
+          setCreateOpen(false)
+        }}
+        onCreate={handleCreate}
+      />
 
       {site ? (
         <>
@@ -512,15 +486,7 @@ export default function App() {
               setTray(null)
               setSites(remaining)
               setSite(next)
-              setScreen(
-                screen === 'sites'
-                  ? remaining.length
-                    ? 'sites'
-                    : 'boot'
-                  : next
-                    ? 'site'
-                    : 'boot'
-              )
+              setScreen(next ? 'site' : 'boot')
               toast('Site deleted.')
             }}
           />

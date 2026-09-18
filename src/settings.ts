@@ -1,4 +1,8 @@
-import { THEME_BACKGROUND_LIGHT, THEME_PRIMARY } from './helpers'
+import {
+  PLACEHOLDER_HOME,
+  THEME_BACKGROUND_LIGHT,
+  THEME_PRIMARY,
+} from './helpers'
 import type {
   AdminTheme,
   AppSettings,
@@ -9,7 +13,16 @@ import type {
   TerminalApp,
 } from './types'
 
-export const DEFAULT_LOCATION = '/Users/rileyhart/sites'
+export const DEFAULT_LOCATION = `${PLACEHOLDER_HOME}/sites`
+
+const LEGACY_HOMES = ['/Users/jameskoster']
+
+export function placeholderPath(path: string) {
+  return LEGACY_HOMES.reduce(
+    (next, home) => next.replaceAll(home, PLACEHOLDER_HOME),
+    path
+  )
+}
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
@@ -132,7 +145,7 @@ export function normalizeSettings(value: unknown): AppSettings {
       : DEFAULT_SETTINGS.customAccent,
     defaultLocation:
       typeof raw.defaultLocation === 'string' && raw.defaultLocation.trim()
-        ? raw.defaultLocation
+        ? placeholderPath(raw.defaultLocation)
         : DEFAULT_SETTINGS.defaultLocation,
     editor: isOneOf(raw.editor, EDITOR_ITEMS.map((item) => item.value))
       ? raw.editor

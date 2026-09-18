@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, normalizeSettings } from './settings'
+import { DEFAULT_SETTINGS, normalizeSettings, placeholderPath } from './settings'
 import type { AppSettings, CheckoutType, PhpVersion, Site } from './types'
 
 const STORAGE_KEY = 'wct.sites'
@@ -43,6 +43,7 @@ function asCheckoutType(value: unknown): CheckoutType {
 function normalizeSite(site: Site): Site {
   return {
     ...site,
+    path: placeholderPath(site.path),
     ticket: site.ticket ?? null,
     patch: site.patch ?? null,
     serverOnline: Boolean(site.serverOnline),
@@ -93,7 +94,11 @@ export function saveStoredSites(state: StoredSites) {
 }
 
 export function currentSiteFromStore(state: StoredSites) {
-  return state.sites.find((site) => site.id === state.currentId) ?? null
+  return (
+    state.sites.find((site) => site.id === state.currentId) ??
+    state.sites.at(-1) ??
+    null
+  )
 }
 
 export function loadTrayHeight(): number | null {

@@ -8,6 +8,7 @@ import {
 } from '@wordpress/dataviews'
 import { Page } from '@wordpress/admin-ui'
 import { Button, Text, VisuallyHidden } from '@wordpress/ui'
+import { Icon, wordpress } from '@wordpress/icons'
 import type { Site } from '../types'
 import { ProcessStatus } from './ProcessMenu'
 
@@ -222,6 +223,7 @@ export function SitesSidebar({
   return (
     <Page
       className="sites-sidebar"
+      visual={<Icon icon={wordpress} size={24} />}
       title="My sites"
       actions={
         <Button

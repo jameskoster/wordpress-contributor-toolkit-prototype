@@ -1,6 +1,6 @@
 import { Page } from '@wordpress/admin-ui'
 import { Button, IconButton } from '@wordpress/ui'
-import { Icon, drawerRight, wordpress } from '@wordpress/icons'
+import { drawerLeft, drawerRight } from '@wordpress/icons'
 import type { ReactNode } from 'react'
 import type { Site } from '../types'
 import { ProcessMenu } from './ProcessMenu'
@@ -24,6 +24,8 @@ type AppPageProps = {
   onToggleWatch?: () => void
   sidebarOpen?: boolean
   onToggleSidebar?: () => void
+  sitesListOpen?: boolean
+  onToggleSitesList?: () => void
 }
 
 export function AppPage({
@@ -44,11 +46,12 @@ export function AppPage({
   onToggleWatch,
   sidebarOpen = true,
   onToggleSidebar,
+  sitesListOpen = true,
+  onToggleSitesList,
 }: AppPageProps) {
   return (
     <Page
       className="app-page"
-      visual={<Icon icon={wordpress} size={24} />}
       title={site.name}
       actions={
         <>
@@ -97,10 +100,23 @@ export function AppPage({
           />
         </>
       }
-      showSidebarToggle={false}
+      showSidebarToggle={Boolean(onToggleSitesList)}
       hasPadding={false}
       ariaLabel={site.name}
     >
+      {onToggleSitesList ? (
+        <Page.SidebarToggleFill>
+          <IconButton
+            icon={drawerLeft}
+            label={sitesListOpen ? 'Hide sites list' : 'Show sites list'}
+            variant="minimal"
+            tone="neutral"
+            size="compact"
+            aria-pressed={sitesListOpen}
+            onClick={onToggleSitesList}
+          />
+        </Page.SidebarToggleFill>
+      ) : null}
       {children}
     </Page>
   )

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { SlotFillProvider } from '@wordpress/components'
 import { ThemeProvider } from '@wordpress/theme'
 import { Button, EmptyState, Notice } from '@wordpress/ui'
 import { globe } from '@wordpress/icons'
@@ -63,6 +64,7 @@ export default function App() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [tray, setTray] = useState<TrayId | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(loadSidebarOpen)
+  const [sitesListOpen, setSitesListOpen] = useState(true)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [setupStep, setSetupStep] = useState(0)
   const [pendingSite, setPendingSite] = useState<Site | null>(null)
@@ -312,6 +314,7 @@ export default function App() {
         accent: settings.customAccent,
       })}
     >
+      <SlotFillProvider>
       <div className="app-root">
       {screen === 'boot' ? (
         <div className="page-body is-centered">
@@ -329,30 +332,40 @@ export default function App() {
       ) : null}
 
       {screen === 'site' && site ? (
-        <div className="site-shell">
-          <SitesSidebar
-            sites={sites}
-            selectedSiteId={site.id}
-            editorLabel={editorLabel(settings.editor)}
-            terminalLabel={terminalLabel(settings.terminal)}
-            onSelectSite={setSite}
-            onCreateSite={() => setCreateOpen(true)}
-            onRename={requestRename}
-            onCopyPath={copySitePath}
-            onShowInFinder={() => toast('Showed site folder in Finder.')}
-            onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
-            onOpenInEditor={() =>
-              toast(`Opened site directory in ${editorLabel(settings.editor)}.`)
-            }
-            onOpenInTerminal={() =>
-              toast(
-                `Opened site directory in ${terminalLabel(settings.terminal)}.`
-              )
-            }
-            onDelete={requestDelete}
-            onToggleServer={requestServerToggle}
-            onToggleWatch={requestWatchToggle}
-          />
+        <div
+          className={
+            sitesListOpen ? 'site-shell' : 'site-shell is-sites-list-hidden'
+          }
+        >
+          <div
+            className="sites-sidebar-slot"
+            inert={!sitesListOpen || undefined}
+            aria-hidden={!sitesListOpen}
+          >
+            <SitesSidebar
+              sites={sites}
+              selectedSiteId={site.id}
+              editorLabel={editorLabel(settings.editor)}
+              terminalLabel={terminalLabel(settings.terminal)}
+              onSelectSite={setSite}
+              onCreateSite={() => setCreateOpen(true)}
+              onRename={requestRename}
+              onCopyPath={copySitePath}
+              onShowInFinder={() => toast('Showed site folder in Finder.')}
+              onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
+              onOpenInEditor={() =>
+                toast(`Opened site directory in ${editorLabel(settings.editor)}.`)
+              }
+              onOpenInTerminal={() =>
+                toast(
+                  `Opened site directory in ${terminalLabel(settings.terminal)}.`
+                )
+              }
+              onDelete={requestDelete}
+              onToggleServer={requestServerToggle}
+              onToggleWatch={requestWatchToggle}
+            />
+          </div>
           <div className="site-shell-main">
             <AppPage
               site={site}
@@ -385,6 +398,10 @@ export default function App() {
                   return next
                 })
               }}
+              sitesListOpen={sitesListOpen}
+              onToggleSitesList={() =>
+                setSitesListOpen((current) => !current)
+              }
             >
               <div className="site-workspace-main">
                 <SiteDashboard
@@ -517,6 +534,7 @@ export default function App() {
         ))}
       </div>
       </div>
+      </SlotFillProvider>
     </ThemeProvider>
   )
 }

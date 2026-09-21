@@ -10,7 +10,7 @@ export type QuitBehavior = 'stop' | 'leave' | 'restart'
 
 export type PhpVersion = '8.2' | '8.3' | '8.4'
 
-export type CheckoutType = 'core' | 'core-gutenberg'
+export type CheckoutType = 'core' | 'gutenberg'
 
 export type TrayId = 'terminal' | 'logs' | 'email'
 
@@ -29,7 +29,6 @@ export type AppSettings = {
   phpVersion: PhpVersion
   wpDebug: boolean
   scriptDebug: boolean
-  checkoutType: CheckoutType
   adminUsername: string
   adminPassword: string
 }

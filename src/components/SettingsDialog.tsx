@@ -16,7 +16,6 @@ import {
   Text,
 } from '@wordpress/ui'
 import {
-  CHECKOUT_ITEMS,
   EDITOR_ITEMS,
   PHP_ITEMS,
   QUIT_ITEMS,
@@ -26,7 +25,6 @@ import {
 import type {
   AdminTheme,
   AppSettings,
-  CheckoutType,
   PhpVersion,
 } from '../types'
 import { FolderField } from './FolderField'
@@ -403,26 +401,6 @@ export function SettingsDialog({
                     }}
                   >
                     {PHP_ITEMS.map((item) => (
-                      <ToggleGroupControlOption
-                        key={item.value}
-                        value={item.value}
-                        label={item.label}
-                      />
-                    ))}
-                  </ToggleGroupControl>
-                  <ToggleGroupControl
-                    __nextHasNoMarginBottom
-                    __next40pxDefaultSize
-                    isBlock
-                    label="What to check out"
-                    value={settings.checkoutType}
-                    onChange={(value) => {
-                      if (value === 'core' || value === 'core-gutenberg') {
-                        onChange({ checkoutType: value as CheckoutType })
-                      }
-                    }}
-                  >
-                    {CHECKOUT_ITEMS.map((item) => (
                       <ToggleGroupControlOption
                         key={item.value}
                         value={item.value}

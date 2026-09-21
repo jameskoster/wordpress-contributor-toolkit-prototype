@@ -9,6 +9,7 @@ import {
 import { Page } from '@wordpress/admin-ui'
 import { Button, Text, VisuallyHidden } from '@wordpress/ui'
 import { Icon, wordpress } from '@wordpress/icons'
+import { checkoutLabel } from '../settings'
 import type { Site } from '../types'
 import { ProcessStatus } from './ProcessMenu'
 
@@ -30,6 +31,18 @@ const fields: Field<Site>[] = [
     ),
   },
   {
+    id: 'checkoutType',
+    type: 'text',
+    label: 'Project',
+    enableGlobalSearch: true,
+    getValue: ({ item }) => checkoutLabel(item.checkoutType),
+    render: ({ item }) => (
+      <Text variant="body-sm" className="muted-label">
+        {checkoutLabel(item.checkoutType)}
+      </Text>
+    ),
+  },
+  {
     id: 'path',
     type: 'text',
     label: 'Local path',
@@ -48,7 +61,7 @@ const defaultView: View = {
   page: 1,
   perPage: 100,
   titleField: 'name',
-  descriptionField: 'path',
+  descriptionField: 'checkoutType',
   showMedia: false,
   fields: [],
   layout: {

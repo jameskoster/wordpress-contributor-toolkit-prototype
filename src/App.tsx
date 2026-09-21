@@ -19,7 +19,7 @@ import {
   usePrefersDarkScheme,
   yesterdayLabel,
 } from './helpers'
-import { editorLabel, terminalLabel } from './settings'
+import { editorLabel, isGutenbergSite, terminalLabel } from './settings'
 import {
   currentSiteFromStore,
   loadRestartSiteIds,
@@ -31,13 +31,30 @@ import {
   saveSidebarOpen,
   saveStoredSites,
 } from './storage'
-import type { AppSettings, Screen, Site, Toast, TrayId } from './types'
+import type {
+  AppSettings,
+  CheckoutType,
+  Screen,
+  Site,
+  Toast,
+  TrayId,
+} from './types'
 
-const SETUP_STEPS = [
+const CORE_SETUP_STEPS = [
   { label: 'Downloading WordPress…', duration: 2400 },
   { label: 'Installing npm dependencies…', duration: 2200 },
   { label: 'Compiling…', duration: 1600 },
 ] as const
+
+const GUTENBERG_SETUP_STEPS = [
+  { label: 'Cloning Gutenberg…', duration: 2400 },
+  { label: 'Installing npm dependencies…', duration: 2200 },
+  { label: 'Compiling…', duration: 1600 },
+] as const
+
+function setupSteps(checkoutType: CheckoutType) {
+  return checkoutType === 'gutenberg' ? GUTENBERG_SETUP_STEPS : CORE_SETUP_STEPS
+}
 
 function getInitialSites() {
   const stored = loadStoredSites()
@@ -113,7 +130,11 @@ export default function App() {
     setDeleteOpen(true)
   }
 
-  function handleCreate(name: string, location: string) {
+  function handleCreate(
+    name: string,
+    location: string,
+    checkoutType: CheckoutType
+  ) {
     if (pendingSite) {
       return
     }
@@ -131,7 +152,7 @@ export default function App() {
       phpVersion: settings.phpVersion,
       wpDebug: settings.wpDebug,
       scriptDebug: settings.scriptDebug,
-      checkoutType: settings.checkoutType,
+      checkoutType,
       adminUsername: settings.adminUsername,
       adminPassword: settings.adminPassword,
     }
@@ -166,8 +187,10 @@ export default function App() {
       return
     }
 
+    const steps = setupSteps(pendingSite.checkoutType)
+    const currentStep = steps[setupStep] ?? steps[0]
     const timeout = window.setTimeout(() => {
-      if (setupStep < SETUP_STEPS.length - 1) {
+      if (setupStep < steps.length - 1) {
         setSetupStep((step) => step + 1)
         return
       }
@@ -177,7 +200,7 @@ export default function App() {
       setCreateOpen(false)
       setScreen('site')
       toast(`${pendingSite.name} created`, 'success')
-    }, SETUP_STEPS[setupStep].duration)
+    }, currentStep.duration)
 
     return () => window.clearTimeout(timeout)
   }, [setupStep, pendingSite])
@@ -411,24 +434,34 @@ export default function App() {
                   }}
                   onLinkTicket={(ticket) => {
                     upsertSite({ ...site, ticket })
+                    const workLabel = isGutenbergSite(site.checkoutType)
+                      ? 'issue'
+                      : 'ticket'
                     toast(
                       settings.wordpressOrgUsername
-                        ? `Linked ticket ${ticket} as ${settings.wordpressOrgUsername}.`
-                        : `Linked ticket ${ticket}.`
+                        ? `Linked ${workLabel} ${ticket} as ${settings.wordpressOrgUsername}.`
+                        : `Linked ${workLabel} ${ticket}.`
                     )
                   }}
                   onUnlinkTicket={() => {
                     upsertSite({ ...site, ticket: null })
-                    toast('Unlinked ticket.')
+                    toast(
+                      isGutenbergSite(site.checkoutType)
+                        ? 'Unlinked issue.'
+                        : 'Unlinked ticket.'
+                    )
                   }}
                   onRefreshPullRequests={() => toast('Pull requests refreshed.')}
                   onRefreshAttachments={() => toast('Attachments refreshed.')}
                   onApplyPatch={(value) => {
                     upsertSite({ ...site, patch: value })
+                    const verb = isGutenbergSite(site.checkoutType)
+                      ? 'Checked out'
+                      : 'Applied'
                     toast(
                       settings.githubUsername
-                        ? `Applied ${value} as ${settings.githubUsername} and rebuilt.`
-                        : `Applied ${value} and rebuilt.`
+                        ? `${verb} ${value} as ${settings.githubUsername} and rebuilt.`
+                        : `${verb} ${value} and rebuilt.`
                     )
                   }}
                   serverPending={serverPendingId === site.id}
@@ -457,7 +490,9 @@ export default function App() {
         open={createOpen}
         defaultLocation={settings.defaultLocation}
         creating={Boolean(pendingSite)}
-        statusMessage={SETUP_STEPS[setupStep].label}
+        statusMessage={
+          setupSteps(pendingSite?.checkoutType ?? 'core')[setupStep]?.label
+        }
         onOpenChange={(open) => {
           if (open || pendingSite) {
             return

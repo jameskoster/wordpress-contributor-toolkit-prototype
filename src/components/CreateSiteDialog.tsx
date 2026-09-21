@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  __experimentalToggleGroupControl as ToggleGroupControl,
+  __experimentalToggleGroupControlOption as ToggleGroupControlOption,
+} from '@wordpress/components'
 import { Button, Dialog, InputControl, Spinner, Stack, Text } from '@wordpress/ui'
+import { CHECKOUT_ITEMS } from '../settings'
+import type { CheckoutType } from '../types'
 import { FolderField } from './FolderField'
 
 type CreateSiteDialogProps = {
@@ -8,7 +14,7 @@ type CreateSiteDialogProps = {
   creating?: boolean
   statusMessage?: string
   onOpenChange: (open: boolean) => void
-  onCreate: (name: string, location: string) => void
+  onCreate: (name: string, location: string, checkoutType: CheckoutType) => void
 }
 
 export function CreateSiteDialog({
@@ -21,6 +27,7 @@ export function CreateSiteDialog({
 }: CreateSiteDialogProps) {
   const [name, setName] = useState('')
   const [location, setLocation] = useState(defaultLocation)
+  const [checkoutType, setCheckoutType] = useState<CheckoutType>('core')
   const [showProgress, setShowProgress] = useState(false)
   const wasOpen = useRef(open)
 
@@ -34,6 +41,7 @@ export function CreateSiteDialog({
     if (open && !wasOpen.current) {
       setName('')
       setLocation(defaultLocation)
+      setCheckoutType('core')
       setShowProgress(false)
     }
 
@@ -88,6 +96,26 @@ export function CreateSiteDialog({
                 placeholder="My WordPress site"
                 onChange={(event) => setName(event.currentTarget.value)}
               />
+              <ToggleGroupControl
+                __nextHasNoMarginBottom
+                __next40pxDefaultSize
+                isBlock
+                label="Project"
+                value={checkoutType}
+                onChange={(value) => {
+                  if (value === 'core' || value === 'gutenberg') {
+                    setCheckoutType(value)
+                  }
+                }}
+              >
+                {CHECKOUT_ITEMS.map((item) => (
+                  <ToggleGroupControlOption
+                    key={item.value}
+                    value={item.value}
+                    label={item.label}
+                  />
+                ))}
+              </ToggleGroupControl>
               <FolderField
                 label="Location"
                 description="Choose the parent folder where you want this new site created. A new subdirectory will be created for the site"
@@ -103,7 +131,8 @@ export function CreateSiteDialog({
               onClick={() =>
                 onCreate(
                   name.trim() || 'My WordPress site',
-                  location.trim() || defaultLocation
+                  location.trim() || defaultLocation,
+                  checkoutType
                 )
               }
             >

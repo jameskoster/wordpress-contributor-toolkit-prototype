@@ -55,17 +55,44 @@ const LINKED_TICKET = {
   ],
 } as const
 
+const LINKED_ISSUE = {
+  title: <>Inserter loses focus after inserting a synced pattern</>,
+  meta: 'Bug · Editor · Opened 3 weeks ago',
+  pullRequests: [
+    {
+      id: '#68421',
+      title: <>Fix inserter focus after inserting a synced pattern</>,
+      status: 'Open',
+      latest: true,
+      lastCommit: '19/09/2026',
+    },
+    {
+      id: '#67102',
+      title: <>Restore inserter focus when pattern insertion completes</>,
+      status: 'Closed',
+      latest: false,
+      lastCommit: '04/07/2026',
+    },
+  ],
+} as const
+
 function ticketNumber(ticket: string) {
   const match = ticket.match(/(\d+)\s*$/)
   return match?.[1] ?? ticket
 }
 
-function ticketUrl(ticket: string) {
-  return `https://core.trac.wordpress.org/ticket/${ticketNumber(ticket)}`
+function ticketUrl(ticket: string, variant: WorkItemVariant) {
+  const number = ticketNumber(ticket)
+  return variant === 'github'
+    ? `https://github.com/WordPress/gutenberg/issues/${number}`
+    : `https://core.trac.wordpress.org/ticket/${number}`
 }
 
-function pullRequestUrl(id: string) {
-  return `https://github.com/WordPress/wordpress-develop/pull/${ticketNumber(id)}`
+function pullRequestUrl(id: string, variant: WorkItemVariant) {
+  const number = ticketNumber(id)
+  return variant === 'github'
+    ? `https://github.com/WordPress/gutenberg/pull/${number}`
+    : `https://github.com/WordPress/wordpress-develop/pull/${number}`
 }
 
 function attachmentUrl(ticket: string, file: string) {
@@ -119,17 +146,21 @@ function SectionHead({
   )
 }
 
+export type WorkItemVariant = 'trac' | 'github'
+
 type TracTicketCardProps = {
   ticket: string | null
+  variant?: WorkItemVariant
   onLinkTicket: (ticket: string) => void
   onUnlinkTicket: () => void
   onApplyPatch: (value: string) => void
   onRefreshPullRequests: () => void
-  onRefreshAttachments: () => void
+  onRefreshAttachments?: () => void
 }
 
 export function TracTicketCard({
   ticket,
+  variant = 'trac',
   onLinkTicket,
   onUnlinkTicket,
   onApplyPatch,
@@ -139,6 +170,10 @@ export function TracTicketCard({
   const [ticketDraft, setTicketDraft] = useState(ticket ?? '12345')
   const [pending, setPending] = useState(false)
   const pendingTimer = useRef<number>(undefined)
+  const isGitHub = variant === 'github'
+  const linkedWork = isGitHub ? LINKED_ISSUE : LINKED_TICKET
+  const cardTitle = isGitHub ? 'GitHub issue' : 'Trac ticket'
+  const workLabel = isGitHub ? 'issue' : 'ticket'
 
   useEffect(() => {
     return () => window.clearTimeout(pendingTimer.current)
@@ -171,13 +206,13 @@ export function TracTicketCard({
             gap="md"
             wrap="wrap"
           >
-            <Card.Title>Trac ticket</Card.Title>
+            <Card.Title>{cardTitle}</Card.Title>
             <Button
               variant="minimal"
               tone="neutral"
               size="compact"
               loading={pending}
-              loadingAnnouncement="Unlinking ticket"
+              loadingAnnouncement={`Unlinking ${workLabel}`}
               onClick={() => runAfterDelay(UNLINK_DELAY, onUnlinkTicket)}
             >
               Unlink
@@ -187,14 +222,14 @@ export function TracTicketCard({
         <Card.Content render={<Stack direction="column" gap="xl" />}>
           <Stack direction="column" gap="sm">
             <Text variant="heading-md">
-              <Link href={ticketUrl(number)} openInNewTab>
-                #{number} {LINKED_TICKET.title}
+              <Link href={ticketUrl(number, variant)} openInNewTab>
+                #{number} {linkedWork.title}
               </Link>
             </Text>
             <Stack direction="row" align="center" gap="sm" wrap="wrap">
               <Badge intent="informational">Reviewing</Badge>
               <Text variant="body-md" className="muted-label">
-                {LINKED_TICKET.meta}
+                {linkedWork.meta}
               </Text>
             </Stack>
           </Stack>
@@ -207,11 +242,11 @@ export function TracTicketCard({
               onRefresh={onRefreshPullRequests}
             />
             <Text variant="body-md" className="muted-label">
-              See the work that already exists on this ticket before adding
+              See the work that already exists on this {workLabel} before adding
               your own.
             </Text>
             <ul className="ticket-pr-list">
-              {LINKED_TICKET.pullRequests.map((pullRequest) => (
+              {linkedWork.pullRequests.map((pullRequest) => (
                 <li key={pullRequest.id} className="ticket-pr">
                   <Stack direction="column" gap="sm">
                     <Stack
@@ -238,7 +273,7 @@ export function TracTicketCard({
                       variant="body-md"
                       render={
                         <Link
-                          href={pullRequestUrl(pullRequest.id)}
+                          href={pullRequestUrl(pullRequest.id, variant)}
                           openInNewTab
                         />
                       }
@@ -263,65 +298,69 @@ export function TracTicketCard({
             </ul>
           </Stack>
 
-          <hr className="card-divider" />
+          {!isGitHub && onRefreshAttachments ? (
+            <>
+              <hr className="card-divider" />
 
-          <Stack direction="column" gap="sm">
-            <SectionHead
-              title="Trac attachments"
-              onRefresh={onRefreshAttachments}
-            />
-            <Text variant="body-md" className="muted-label">
-              Patch files are sometimes attached on Trac instead of a PR.
-              Reading them opens the ticket so you can pass its human-check
-              once.
-            </Text>
-            <ul className="ticket-pr-list">
-              {LINKED_TICKET.attachments.map((attachment) => {
-                const file = attachmentName(number, attachment.file)
+              <Stack direction="column" gap="sm">
+                <SectionHead
+                  title="Trac attachments"
+                  onRefresh={onRefreshAttachments}
+                />
+                <Text variant="body-md" className="muted-label">
+                  Patch files are sometimes attached on Trac instead of a PR.
+                  Reading them opens the ticket so you can pass its human-check
+                  once.
+                </Text>
+                <ul className="ticket-pr-list">
+                  {LINKED_TICKET.attachments.map((attachment) => {
+                    const file = attachmentName(number, attachment.file)
 
-                return (
-                  <li key={attachment.file} className="ticket-pr">
-                    <Stack direction="column" gap="sm">
-                      <Stack
-                        direction="row"
-                        align="center"
-                        gap="sm"
-                        wrap="wrap"
-                      >
-                        <Text
-                          variant="body-md"
-                          className="ticket-pr-id"
-                          render={
-                            <Link
-                              href={attachmentUrl(number, file)}
-                              openInNewTab
-                            />
-                          }
-                        >
-                          {file}
-                        </Text>
-                        {attachment.latest ? (
-                          <Badge intent="informational">Latest</Badge>
-                        ) : null}
-                      </Stack>
-                      <Text variant="body-md" className="muted-label">
-                        Uploaded {attachment.uploaded} · {attachment.size}
-                      </Text>
-                      <Stack direction="row">
-                        <Button
-                          variant="outline"
-                          size="compact"
-                          onClick={() => onApplyPatch(file)}
-                        >
-                          Apply
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  </li>
-                )
-              })}
-            </ul>
-          </Stack>
+                    return (
+                      <li key={attachment.file} className="ticket-pr">
+                        <Stack direction="column" gap="sm">
+                          <Stack
+                            direction="row"
+                            align="center"
+                            gap="sm"
+                            wrap="wrap"
+                          >
+                            <Text
+                              variant="body-md"
+                              className="ticket-pr-id"
+                              render={
+                                <Link
+                                  href={attachmentUrl(number, file)}
+                                  openInNewTab
+                                />
+                              }
+                            >
+                              {file}
+                            </Text>
+                            {attachment.latest ? (
+                              <Badge intent="informational">Latest</Badge>
+                            ) : null}
+                          </Stack>
+                          <Text variant="body-md" className="muted-label">
+                            Uploaded {attachment.uploaded} · {attachment.size}
+                          </Text>
+                          <Stack direction="row">
+                            <Button
+                              variant="outline"
+                              size="compact"
+                              onClick={() => onApplyPatch(file)}
+                            >
+                              Apply
+                            </Button>
+                          </Stack>
+                        </Stack>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </Stack>
+            </>
+          ) : null}
         </Card.Content>
       </Card.Root>
     )
@@ -330,15 +369,15 @@ export function TracTicketCard({
   return (
     <Card.Root>
       <Card.Header render={<Stack direction="column" gap="xs" />}>
-        <Card.Title>Trac ticket</Card.Title>
+        <Card.Title>{cardTitle}</Card.Title>
         <Text variant="body-md" className="muted-label">
-          Link the ticket you’re working on.
+          Link the {workLabel} you’re working on.
         </Text>
       </Card.Header>
       <Card.Content>
         <div className="inline-field">
           <InputControl
-            label="Ticket number or URL"
+            label={isGitHub ? 'Issue number or URL' : 'Ticket number or URL'}
             value={ticketDraft}
             disabled={pending}
             onChange={(event) => setTicketDraft(event.currentTarget.value)}
@@ -346,7 +385,7 @@ export function TracTicketCard({
           <Button
             variant="outline"
             loading={pending}
-            loadingAnnouncement="Linking ticket"
+            loadingAnnouncement={`Linking ${workLabel}`}
             onClick={() => {
               const next = ticketDraft.trim()
               if (!next) {
@@ -357,7 +396,7 @@ export function TracTicketCard({
             }}
             disabled={pending || !ticketDraft.trim()}
           >
-            Link ticket
+            {isGitHub ? 'Link issue' : 'Link ticket'}
           </Button>
         </div>
       </Card.Content>
@@ -366,12 +405,21 @@ export function TracTicketCard({
         <div className="card-footer-content">
           <Text variant="body-md">
             Not sure yet?{' '}
-            <Link
-              href="https://core.trac.wordpress.org/query?status=!closed&keywords=~good-first-bug"
-              openInNewTab
-            >
-              Browse good first bugs on Trac
-            </Link>
+            {isGitHub ? (
+              <Link
+                href="https://github.com/WordPress/gutenberg/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22"
+                openInNewTab
+              >
+                Browse good first issues on GitHub
+              </Link>
+            ) : (
+              <Link
+                href="https://core.trac.wordpress.org/query?status=!closed&keywords=~good-first-bug"
+                openInNewTab
+              >
+                Browse good first bugs on Trac
+              </Link>
+            )}
           </Text>
         </div>
       </footer>

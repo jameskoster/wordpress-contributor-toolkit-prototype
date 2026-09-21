@@ -39,7 +39,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   phpVersion: '8.3',
   wpDebug: true,
   scriptDebug: true,
-  checkoutType: 'core',
   adminUsername: 'Admin',
   adminPassword: 'Password',
 }
@@ -89,7 +88,7 @@ export const PHP_ITEMS = [
 
 export const CHECKOUT_ITEMS = [
   { value: 'core', label: 'WordPress Core' },
-  { value: 'core-gutenberg', label: 'Core + Gutenberg' },
+  { value: 'gutenberg', label: 'Gutenberg' },
 ] as const satisfies ReadonlyArray<{ value: CheckoutType; label: string }>
 
 function isOneOf<T extends string>(
@@ -118,6 +117,10 @@ export function checkoutLabel(checkout: CheckoutType) {
     CHECKOUT_ITEMS.find((item) => item.value === checkout)?.label ??
     'WordPress Core'
   )
+}
+
+export function isGutenbergSite(checkout: CheckoutType) {
+  return checkout === 'gutenberg'
 }
 
 export function selectItem<T extends string>(
@@ -169,9 +172,6 @@ export function normalizeSettings(value: unknown): AppSettings {
       : DEFAULT_SETTINGS.phpVersion,
     wpDebug: typeof raw.wpDebug === 'boolean' ? raw.wpDebug : true,
     scriptDebug: typeof raw.scriptDebug === 'boolean' ? raw.scriptDebug : true,
-    checkoutType: isOneOf(raw.checkoutType, ['core', 'core-gutenberg'])
-      ? raw.checkoutType
-      : DEFAULT_SETTINGS.checkoutType,
     adminUsername:
       typeof raw.adminUsername === 'string' && raw.adminUsername.trim()
         ? raw.adminUsername

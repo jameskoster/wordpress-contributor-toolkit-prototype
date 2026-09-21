@@ -22,7 +22,7 @@ import {
 } from '@wordpress/ui'
 import { globe, offline, seen, table, unseen, wordpress } from '@wordpress/icons'
 import { formatTimeAgo, PLACEHOLDER_HOME } from '../helpers'
-import { checkoutLabel } from '../settings'
+import { checkoutLabel, isGutenbergSite } from '../settings'
 import type { Site } from '../types'
 import { ApplyPatchDialog } from './ApplyPatchDialog'
 import { TracTicketCard } from './TracTicketCard'
@@ -240,6 +240,7 @@ export function SiteDashboard({
   const compileIndex = useRef(0)
   const pathCopiedTimer = useRef<number>(undefined)
   const { sidebarRef, unstuck } = useStickyUntilTrayOverlap(sidebarOpen)
+  const gutenberg = isGutenbergSite(site.checkoutType)
 
   useEffect(() => {
     setPathCopied(false)
@@ -304,85 +305,111 @@ export function SiteDashboard({
       <Stack direction="column" gap="2xl">
         <TracTicketCard
           ticket={site.ticket}
+          variant={gutenberg ? 'github' : 'trac'}
           onLinkTicket={onLinkTicket}
           onUnlinkTicket={onUnlinkTicket}
           onApplyPatch={requestApply}
           onRefreshPullRequests={onRefreshPullRequests}
-          onRefreshAttachments={onRefreshAttachments}
+          onRefreshAttachments={gutenberg ? undefined : onRefreshAttachments}
         />
 
         <CollapsibleCard.Root>
           <CollapsibleCard.Header>
             <Stack direction="column" gap="xs">
-              <Card.Title>Apply a patch or PR</Card.Title>
+              <Card.Title>
+                {gutenberg ? 'Check out a PR' : 'Apply a patch or PR'}
+              </Card.Title>
               <CollapsibleCard.HeaderDescription>
-                Test changes in this checkout. Your own changes are preserved.
+                {gutenberg
+                  ? 'Test a pull request in this checkout. Your own changes are preserved.'
+                  : 'Test changes in this checkout. Your own changes are preserved.'}
               </CollapsibleCard.HeaderDescription>
             </Stack>
           </CollapsibleCard.Header>
           <CollapsibleCard.Content>
             <Stack direction="column" gap="md">
-              <Tabs.Root
-                defaultValue="pr"
-                render={<Stack direction="column" gap="md" />}
-              >
-                <div className="patch-tabs-bar">
-                  <Tabs.List variant="minimal" className="patch-tabs">
-                    <Tabs.Tab value="pr">Pull request</Tabs.Tab>
-                    <Tabs.Tab value="diff">Diff</Tabs.Tab>
-                  </Tabs.List>
-                  <hr className="card-divider" />
+              {gutenberg ? (
+                <div className="inline-field">
+                  <InputControl
+                    label="Pull request URL or number"
+                    value={prDraft}
+                    onChange={(event) =>
+                      setPrDraft(event.currentTarget.value)
+                    }
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => requestApply(prDraft.trim())}
+                    disabled={!prDraft.trim()}
+                  >
+                    Check out PR
+                  </Button>
                 </div>
-                <Tabs.Panel value="pr" tabIndex={-1}>
-                  <div className="inline-field">
-                    <InputControl
-                      label="Pull request URL or number"
-                      value={prDraft}
-                      onChange={(event) =>
-                        setPrDraft(event.currentTarget.value)
-                      }
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => requestApply(prDraft.trim())}
-                      disabled={!prDraft.trim()}
-                    >
-                      Apply PR
-                    </Button>
+              ) : (
+                <Tabs.Root
+                  defaultValue="pr"
+                  render={<Stack direction="column" gap="md" />}
+                >
+                  <div className="patch-tabs-bar">
+                    <Tabs.List variant="minimal" className="patch-tabs">
+                      <Tabs.Tab value="pr">Pull request</Tabs.Tab>
+                      <Tabs.Tab value="diff">Diff</Tabs.Tab>
+                    </Tabs.List>
+                    <hr className="card-divider" />
                   </div>
-                </Tabs.Panel>
-                <Tabs.Panel value="diff" tabIndex={-1}>
-                  <Field.Root>
-                    <Field.Label>Patch file</Field.Label>
-                    <Field.Control
-                      className="file-field-control"
-                      render={
-                        <input
-                          type="file"
-                          accept=".diff,.patch,text/x-diff"
-                        />
-                      }
-                      onChange={(event) => {
-                        const file = event.currentTarget.files?.[0]
-                        if (!file) {
-                          return
+                  <Tabs.Panel value="pr" tabIndex={-1}>
+                    <div className="inline-field">
+                      <InputControl
+                        label="Pull request URL or number"
+                        value={prDraft}
+                        onChange={(event) =>
+                          setPrDraft(event.currentTarget.value)
                         }
-                        const path = `${PLACEHOLDER_HOME}/Downloads/${file.name}`
-                        setPatchFile(path)
-                        onApplyPatch(path)
-                      }}
-                    />
-                    {patchFile ? (
-                      <Text variant="body-sm">{patchFile}</Text>
-                    ) : null}
-                    <Field.Description>
-                      Choose a local .diff or .patch file
-                    </Field.Description>
-                  </Field.Root>
-                </Tabs.Panel>
-              </Tabs.Root>
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => requestApply(prDraft.trim())}
+                        disabled={!prDraft.trim()}
+                      >
+                        Apply PR
+                      </Button>
+                    </div>
+                  </Tabs.Panel>
+                  <Tabs.Panel value="diff" tabIndex={-1}>
+                    <Field.Root>
+                      <Field.Label>Patch file</Field.Label>
+                      <Field.Control
+                        className="file-field-control"
+                        render={
+                          <input
+                            type="file"
+                            accept=".diff,.patch,text/x-diff"
+                          />
+                        }
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0]
+                          if (!file) {
+                            return
+                          }
+                          const path = `${PLACEHOLDER_HOME}/Downloads/${file.name}`
+                          setPatchFile(path)
+                          onApplyPatch(path)
+                        }}
+                      />
+                      {patchFile ? (
+                        <Text variant="body-sm">{patchFile}</Text>
+                      ) : null}
+                      <Field.Description>
+                        Choose a local .diff or .patch file
+                      </Field.Description>
+                    </Field.Root>
+                  </Tabs.Panel>
+                </Tabs.Root>
+              )}
               {site.patch ? (
-                <Text variant="body-sm">Applied {site.patch}.</Text>
+                <Text variant="body-sm">
+                  {gutenberg ? 'Checked out' : 'Applied'} {site.patch}.
+                </Text>
               ) : null}
             </Stack>
           </CollapsibleCard.Content>
@@ -591,6 +618,7 @@ export function SiteDashboard({
 
       <ApplyPatchDialog
         value={pendingPatch}
+        mode={gutenberg ? 'checkout' : 'apply'}
         onOpenChange={(open) => {
           if (!open) {
             setPendingPatch(null)

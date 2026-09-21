@@ -1,7 +1,8 @@
 import { Page } from '@wordpress/admin-ui'
-import { Button, IconButton } from '@wordpress/ui'
+import { Badge, Button, IconButton } from '@wordpress/ui'
 import { drawerLeft, drawerRight } from '@wordpress/icons'
 import type { ReactNode } from 'react'
+import { checkoutLabel, isGutenbergSite } from '../settings'
 import type { Site } from '../types'
 import { ProcessMenu } from './ProcessMenu'
 import { SiteMenu } from './SiteMenu'
@@ -53,6 +54,7 @@ export function AppPage({
     <Page
       className="app-page"
       title={site.name}
+      badges={<Badge>{checkoutLabel(site.checkoutType)}</Badge>}
       actions={
         <>
           <ProcessMenu
@@ -74,7 +76,9 @@ export function AppPage({
             onToggle={() => onToggleWatch?.()}
           />
           <Button variant="solid" tone="brand" size="compact" disabled>
-            Review & submit changes
+            {isGutenbergSite(site.checkoutType)
+              ? 'Open PR...'
+              : 'Review & submit changes'}
           </Button>
           {onToggleSidebar ? (
             <IconButton

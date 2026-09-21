@@ -8,7 +8,16 @@ const DEFAULT_FILES = [
   'tests/phpunit/tests/functions/wpFilterObjectList.php',
 ] as const
 
-function filesForPatch(value: string) {
+const GUTENBERG_FILES = [
+  'packages/block-editor/src/components/inserter/index.js',
+  'packages/editor/src/components/provider/index.js',
+] as const
+
+function filesForPatch(value: string, mode: 'apply' | 'checkout') {
+  if (mode === 'checkout') {
+    return [...GUTENBERG_FILES]
+  }
+
   if (/\.(diff|patch)\b/i.test(value)) {
     return [
       'src/wp-includes/functions.php',
@@ -34,19 +43,21 @@ function patchLabel(value: string) {
 
 type ApplyPatchDialogProps = {
   value: string | null
+  mode?: 'apply' | 'checkout'
   onOpenChange: (open: boolean) => void
   onApply: (value: string) => void
 }
 
 export function ApplyPatchDialog({
   value,
+  mode = 'apply',
   onOpenChange,
   onApply,
 }: ApplyPatchDialogProps) {
   const [pending, setPending] = useState(false)
   const [displayValue, setDisplayValue] = useState(value ?? '')
   const pendingTimer = useRef<number>(undefined)
-  const files = filesForPatch(displayValue)
+  const files = filesForPatch(displayValue, mode)
 
   useEffect(() => {
     return () => window.clearTimeout(pendingTimer.current)
@@ -86,8 +97,10 @@ export function ApplyPatchDialog({
         <Dialog.Header>
           <Dialog.Title>
             {displayValue
-              ? `Apply ${patchLabel(displayValue)}`
-              : 'Apply these changes'}
+              ? `${mode === 'checkout' ? 'Check out' : 'Apply'} ${patchLabel(displayValue)}`
+              : mode === 'checkout'
+                ? 'Check out this pull request'
+                : 'Apply these changes'}
           </Dialog.Title>
           <Dialog.CloseIcon />
         </Dialog.Header>
@@ -111,10 +124,14 @@ export function ApplyPatchDialog({
         <Dialog.Footer>
           <Button
             loading={pending}
-            loadingAnnouncement="Applying and rebuilding"
+            loadingAnnouncement={
+              mode === 'checkout'
+                ? 'Checking out and rebuilding'
+                : 'Applying and rebuilding'
+            }
             onClick={handleApply}
           >
-            Apply and rebuild
+            {mode === 'checkout' ? 'Check out and rebuild' : 'Apply and rebuild'}
           </Button>
         </Dialog.Footer>
       </Dialog.Popup>

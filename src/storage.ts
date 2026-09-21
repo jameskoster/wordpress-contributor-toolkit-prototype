@@ -35,9 +35,11 @@ function asPhpVersion(value: unknown): PhpVersion {
 }
 
 function asCheckoutType(value: unknown): CheckoutType {
-  return value === 'core' || value === 'core-gutenberg'
-    ? value
-    : DEFAULT_SETTINGS.checkoutType
+  if (value === 'gutenberg' || value === 'core-gutenberg') {
+    return 'gutenberg'
+  }
+
+  return 'core'
 }
 
 function normalizeSite(site: Site): Site {

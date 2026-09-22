@@ -240,7 +240,7 @@ export function SitesSidebar({
       title="My sites"
       actions={
         <Button
-          variant="solid"
+          variant="outline"
           tone="brand"
           size="compact"
           onClick={onCreateSite}

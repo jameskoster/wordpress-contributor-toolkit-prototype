@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { IconButton, Stack, Tabs, Text } from '@wordpress/ui'
+import { Button, IconButton, Stack, Tabs, Text } from '@wordpress/ui'
 import { closeSmall } from '@wordpress/icons'
 import { loadTrayHeight, saveTrayHeight } from '../storage'
 import type { Site, TrayId } from '../types'
@@ -47,20 +47,26 @@ Start build watch to compile Core assets.`
     : `No entries in debug.log.`
 }
 
-function trayBody(tray: TrayId, site: Site) {
+function emailInboxKey(site: Site) {
+  return `${site.id}:${site.ticket ?? ''}`
+}
+
+function trayBody(tray: TrayId, site: Site, emailsCleared = false) {
   if (tray === 'terminal') {
     return `$ cd ${site.path}
 $ wp server --host=localhost --port=8881
 ${site.serverOnline ? 'Success: Started WordPress at http://localhost:8881' : 'Development server is offline.'}`
   }
 
-  return site.ticket
-    ? `Inbox for ${site.name}
+  if (!emailsCleared && site.ticket) {
+    return `Inbox for ${site.name}
 
 From: wordpress@example.com
 Subject: [${site.ticket}] Comment received
 A new comment was posted on the linked Trac ticket.`
-    : `Inbox for ${site.name}
+  }
+
+  return `Inbox for ${site.name}
 
 No mail yet. WordPress transactional email will appear here once the site sends any.`
 }
@@ -108,6 +114,7 @@ export function BottomTray({ tray, site, onClose }: BottomTrayProps) {
   const [renderedTray, setRenderedTray] = useState<TrayId | null>(tray)
   const [open, setOpen] = useState(false)
   const [logSource, setLogSource] = useState<LogSource>('server')
+  const [clearedEmailKey, setClearedEmailKey] = useState<string | null>(null)
   const [height, setHeight] = useState<number | null>(() => loadTrayHeight())
   const [dragging, setDragging] = useState(false)
   const trayRef = useRef<HTMLElement>(null)
@@ -241,6 +248,10 @@ export function BottomTray({ tray, site, onClose }: BottomTrayProps) {
     return null
   }
 
+  const inboxKey = emailInboxKey(site)
+  const emailsCleared = clearedEmailKey === inboxKey
+  const hasEmails = Boolean(site.ticket) && !emailsCleared
+
   const slotClass = [
     'app-tray-slot',
     open ? 'is-open' : '',
@@ -339,18 +350,31 @@ export function BottomTray({ tray, site, onClose }: BottomTrayProps) {
                 <div className="app-tray-header" ref={headerRef}>
                   <Stack direction="row" align="center" justify="space-between">
                     <Text variant="heading-lg">{titles[renderedTray]}</Text>
-                    <IconButton
-                      icon={closeSmall}
-                      label="Close"
-                      variant="minimal"
-                      tone="neutral"
-                      size="compact"
-                      onClick={onClose}
-                    />
+                    <Stack direction="row" align="center" gap="xs">
+                      {renderedTray === 'email' ? (
+                        <Button
+                          variant="minimal"
+                          tone="neutral"
+                          size="compact"
+                          disabled={!hasEmails}
+                          onClick={() => setClearedEmailKey(inboxKey)}
+                        >
+                          Clear emails
+                        </Button>
+                      ) : null}
+                      <IconButton
+                        icon={closeSmall}
+                        label="Close"
+                        variant="minimal"
+                        tone="neutral"
+                        size="compact"
+                        onClick={onClose}
+                      />
+                    </Stack>
                   </Stack>
                 </div>
                 <pre className="tray-log" ref={logRef}>
-                  {trayBody(renderedTray, site)}
+                  {trayBody(renderedTray, site, emailsCleared)}
                 </pre>
               </>
             )}

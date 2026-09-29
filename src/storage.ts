@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, normalizeSettings, placeholderPath } from './settings'
+import { DEFAULT_SETTINGS, normalizeSettings } from './settings'
 import type { AppSettings, CheckoutType, PhpVersion, Site } from './types'
 
 const STORAGE_KEY = 'wct.sites'
@@ -45,7 +45,6 @@ function asCheckoutType(value: unknown): CheckoutType {
 function normalizeSite(site: Site): Site {
   return {
     ...site,
-    path: placeholderPath(site.path),
     ticket: site.ticket ?? null,
     patch: site.patch ?? null,
     serverOnline: Boolean(site.serverOnline),

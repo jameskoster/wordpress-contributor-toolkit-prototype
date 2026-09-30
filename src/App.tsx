@@ -130,7 +130,7 @@ export default function App() {
     setSite((current) =>
       current?.id === target.id ? { ...current, trunkAsOf } : current
     )
-    toast('Updated checkout to latest trunk.')
+    toast('Updated checkout to latest trunk.', 'success')
   }
 
   function requestRename(target: Site) {

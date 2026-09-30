@@ -28,6 +28,8 @@ import type { Site } from '../types'
 import { ApplyPatchDialog } from './ApplyPatchDialog'
 import { TracTicketCard } from './TracTicketCard'
 
+const TRUNK_UPDATE_DELAY = 2000
+
 const WATCH_COMPILES = [
   { files: ['packages/block-library', 'packages/components'], duration: '1.4s' },
   { files: ['packages/editor'], duration: '0.9s' },
@@ -240,8 +242,10 @@ export function SiteDashboard({
   const [watchCompile, setWatchCompile] = useState<WatchCompile | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const [pathCopied, setPathCopied] = useState(false)
+  const [trunkUpdating, setTrunkUpdating] = useState(false)
   const compileIndex = useRef(0)
   const pathCopiedTimer = useRef<number>(undefined)
+  const trunkTimer = useRef<number>(undefined)
   const { sidebarRef, unstuck } = useStickyUntilTrayOverlap(sidebarOpen)
   const gutenberg = isGutenbergSite(site.checkoutType)
   const trunkBehind = site.trunkAsOf !== formatDate(new Date())
@@ -249,9 +253,14 @@ export function SiteDashboard({
   useEffect(() => {
     setPathCopied(false)
     setPendingPatch(null)
+    setTrunkUpdating(false)
     window.clearTimeout(pathCopiedTimer.current)
+    window.clearTimeout(trunkTimer.current)
 
-    return () => window.clearTimeout(pathCopiedTimer.current)
+    return () => {
+      window.clearTimeout(pathCopiedTimer.current)
+      window.clearTimeout(trunkTimer.current)
+    }
   }, [site.id])
 
   function handleCopyPath() {
@@ -261,6 +270,19 @@ export function SiteDashboard({
     pathCopiedTimer.current = window.setTimeout(() => {
       setPathCopied(false)
     }, 1500)
+  }
+
+  function handleUpdateTrunk() {
+    if (trunkUpdating) {
+      return
+    }
+
+    setTrunkUpdating(true)
+    window.clearTimeout(trunkTimer.current)
+    trunkTimer.current = window.setTimeout(() => {
+      onUpdateTrunk()
+      setTrunkUpdating(false)
+    }, TRUNK_UPDATE_DELAY)
   }
 
   function requestApply(value: string) {
@@ -452,8 +474,15 @@ export function SiteDashboard({
                 {trunkBehind ? (
                   <Notice.Root intent="warning">
                     <Notice.Title>Trunk has new commits</Notice.Title>
+                    <Notice.Description>
+                      Your local changes may conflict with the latest code.
+                    </Notice.Description>
                     <Notice.Actions>
-                      <Notice.ActionButton onClick={onUpdateTrunk}>
+                      <Notice.ActionButton
+                        loading={trunkUpdating}
+                        loadingAnnouncement="Updating checkout to latest trunk"
+                        onClick={handleUpdateTrunk}
+                      >
                         Update
                       </Notice.ActionButton>
                     </Notice.Actions>

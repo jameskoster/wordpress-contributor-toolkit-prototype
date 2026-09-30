@@ -16,12 +16,13 @@ import {
   IconButton,
   InputControl,
   Link,
+  Notice,
   Stack,
   Tabs,
   Text,
 } from '@wordpress/ui'
 import { globe, offline, seen, table, unseen, wordpress } from '@wordpress/icons'
-import { formatTimeAgo, PLACEHOLDER_HOME } from '../helpers'
+import { formatDate, formatTimeAgo, PLACEHOLDER_HOME } from '../helpers'
 import { checkoutLabel, isGutenbergSite } from '../settings'
 import type { Site } from '../types'
 import { ApplyPatchDialog } from './ApplyPatchDialog'
@@ -213,6 +214,7 @@ type SiteDashboardProps = {
   watchPending: boolean
   onToggleServer: () => void
   onToggleWatch: () => void
+  onUpdateTrunk: () => void
   sidebarOpen: boolean
 }
 
@@ -228,6 +230,7 @@ export function SiteDashboard({
   watchPending,
   onToggleServer,
   onToggleWatch,
+  onUpdateTrunk,
   sidebarOpen,
 }: SiteDashboardProps) {
   const [prDraft, setPrDraft] = useState(site.patch ?? '12345')
@@ -241,6 +244,7 @@ export function SiteDashboard({
   const pathCopiedTimer = useRef<number>(undefined)
   const { sidebarRef, unstuck } = useStickyUntilTrayOverlap(sidebarOpen)
   const gutenberg = isGutenbergSite(site.checkoutType)
+  const trunkBehind = site.trunkAsOf !== formatDate(new Date())
 
   useEffect(() => {
     setPathCopied(false)
@@ -438,11 +442,23 @@ export function SiteDashboard({
                 </Text>
                 <Text variant="body-md">{site.created}</Text>
               </Stack>
-              <Stack direction="column">
-                <Text variant="body-md" className="muted-label">
-                  Trunk as of
-                </Text>
-                <Text variant="body-md">{site.trunkAsOf}</Text>
+              <Stack direction="column" gap="sm">
+                <Stack direction="column">
+                  <Text variant="body-md" className="muted-label">
+                    Trunk as of
+                  </Text>
+                  <Text variant="body-md">{site.trunkAsOf}</Text>
+                </Stack>
+                {trunkBehind ? (
+                  <Notice.Root intent="warning">
+                    <Notice.Title>Trunk has new commits</Notice.Title>
+                    <Notice.Actions>
+                      <Notice.ActionButton onClick={onUpdateTrunk}>
+                        Update
+                      </Notice.ActionButton>
+                    </Notice.Actions>
+                  </Notice.Root>
+                ) : null}
               </Stack>
               <Stack direction="row" align="end" justify="space-between">
                 <Stack direction="column" className="path-meta">

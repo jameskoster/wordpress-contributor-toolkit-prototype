@@ -120,6 +120,19 @@ export default function App() {
     toast('Path copied.')
   }
 
+  function updateTrunk(target: Site) {
+    const trunkAsOf = formatDate(new Date())
+    setSites((current) =>
+      current.map((item) =>
+        item.id === target.id ? { ...item, trunkAsOf } : item
+      )
+    )
+    setSite((current) =>
+      current?.id === target.id ? { ...current, trunkAsOf } : current
+    )
+    toast('Updated checkout to latest trunk.')
+  }
+
   function requestRename(target: Site) {
     setSite(target)
     setRenameOpen(true)
@@ -375,7 +388,7 @@ export default function App() {
               onRename={requestRename}
               onCopyPath={copySitePath}
               onShowInFinder={() => toast('Showed site folder in Finder.')}
-              onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
+              onUpdateTrunk={updateTrunk}
               onOpenInEditor={() =>
                 toast(`Opened site directory in ${editorLabel(settings.editor)}.`)
               }
@@ -395,7 +408,7 @@ export default function App() {
               onRename={() => setRenameOpen(true)}
               onCopyPath={() => copySitePath(site)}
               onShowInFinder={() => toast('Showed site folder in Finder.')}
-              onUpdateTrunk={() => toast('Updated checkout to latest trunk.')}
+              onUpdateTrunk={() => updateTrunk(site)}
               editorLabel={editorLabel(settings.editor)}
               terminalLabel={terminalLabel(settings.terminal)}
               onOpenInEditor={() =>
@@ -468,6 +481,7 @@ export default function App() {
                   watchPending={watchPendingId === site.id}
                   onToggleServer={() => requestServerToggle(site)}
                   onToggleWatch={() => requestWatchToggle(site)}
+                  onUpdateTrunk={() => updateTrunk(site)}
                   sidebarOpen={sidebarOpen}
                 />
               </div>

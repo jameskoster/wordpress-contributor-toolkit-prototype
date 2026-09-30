@@ -658,6 +658,372 @@ textarea {
   overflow: auto;
 }
 
+.review-drawer-popup {
+  min-height: 0;
+}
+
+.review-drawer-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-diff-stat.is-added {
+  color: var(--wpds-color-foreground-content-success-weak);
+}
+
+.review-diff-stat.is-removed {
+  color: var(--wpds-color-foreground-content-error-weak);
+}
+
+.review-drawer-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.review-drawer-content > * {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.review-drawer-columns {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr)
+    var(--wpds-dimension-surface-width-md, 400px);
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0%;
+  align-items: stretch;
+  min-height: 0;
+  width: 100%;
+  border-block-start: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-drawer-files,
+.review-drawer-diff,
+.review-drawer-submit {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.review-drawer-files,
+.review-drawer-diff {
+  height: 100%;
+  border-inline-end: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-drawer-files {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.review-drawer-files-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.review-drawer-files .dataviews-wrapper {
+  --wp-dataviews-color-background: transparent;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.review-files-footer {
+  flex: 0 0 auto;
+  padding: var(--wpds-dimension-padding-md, 12px)
+    var(--wpds-dimension-padding-lg, 16px);
+  border-block-start: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-files-discard {
+  width: 100%;
+}
+
+.review-drawer-files .dataviews-view-list__media-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-file-icon {
+  display: flex;
+  color: var(--wpds-color-foreground-content-neutral);
+}
+
+.review-drawer-diff {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.review-diff-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wpds-dimension-gap-md, 12px);
+  padding: var(--wpds-dimension-padding-md, 12px)
+    var(--wpds-dimension-padding-lg, 16px);
+  border-block-end: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-diff-path {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--wpds-color-foreground-content-neutral);
+  font-size: var(--wpds-typography-font-size-md);
+  line-height: var(--wpds-typography-line-height-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-diff-path-name {
+  font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.review-diff-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  container-type: inline-size;
+}
+
+.review-diff {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-family: var(--wpds-typography-font-family-mono);
+  font-size: var(--wpds-typography-font-size-sm);
+  line-height: 1.65;
+}
+
+.review-diff td,
+.review-diff-code,
+.review-diff-gutter,
+.review-diff-hunk {
+  padding: 0;
+  white-space: pre;
+  vertical-align: baseline;
+}
+
+.review-diff td.review-diff-gutter,
+.review-diff-gutter {
+  width: 1%;
+  padding-inline: var(--wpds-dimension-padding-lg, 16px) 10px;
+  color: var(--wpds-color-foreground-content-neutral-weak);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  user-select: none;
+}
+
+.review-diff-code,
+.review-diff-hunk {
+  padding-inline-end: var(--wpds-dimension-padding-lg, 16px);
+}
+
+.review-diff.is-split {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  min-width: 100%;
+}
+
+.review-diff-split-row {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  min-width: 100%;
+}
+
+.review-diff-pane {
+  display: grid;
+  grid-template-columns: auto max-content;
+  min-width: 50cqw;
+}
+
+.review-diff-pane + .review-diff-pane {
+  border-inline-start: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-diff.is-split .review-diff-hunk {
+  padding-inline-start: 3.5rem;
+}
+
+.review-diff-pane.is-add {
+  color: var(--wpds-color-foreground-content-success-weak);
+  background: var(--wpds-color-background-surface-success-weak);
+}
+
+.review-diff-pane.is-remove {
+  color: var(--wpds-color-foreground-content-error-weak);
+  background: var(--wpds-color-background-surface-error-weak);
+}
+
+.review-diff-pane.is-add .review-diff-gutter,
+.review-diff-pane.is-remove .review-diff-gutter {
+  color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.review-diff td.is-add,
+.review-diff tr.is-add td {
+  color: var(--wpds-color-foreground-content-success-weak);
+  background: var(--wpds-color-background-surface-success-weak);
+}
+
+.review-diff td.is-remove,
+.review-diff tr.is-remove td {
+  color: var(--wpds-color-foreground-content-error-weak);
+  background: var(--wpds-color-background-surface-error-weak);
+}
+
+.review-diff .review-diff-gutter.is-add,
+.review-diff .review-diff-gutter.is-remove,
+.review-diff tr.is-add .review-diff-gutter,
+.review-diff tr.is-remove .review-diff-gutter {
+  color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.review-diff tr.is-hunk td,
+.review-diff-hunk {
+  color: var(--wpds-color-foreground-content-neutral-weak);
+  background: var(--wpds-color-background-surface-neutral-weak);
+}
+
+.review-drawer-submit {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+}
+
+.review-drawer-submit-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--wpds-dimension-padding-2xl, 24px);
+}
+
+.review-github-code {
+  font-family: var(--wpds-typography-font-family-mono);
+  letter-spacing: 0.06em;
+}
+
+.review-github-branch {
+  width: 100%;
+  height: auto;
+  border-color: var(--wpds-color-stroke-surface-neutral);
+  border-radius: var(--wpds-border-radius-md, 8px);
+  background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.review-github-branch button {
+  align-items: center;
+  height: auto;
+  min-height: var(--wpds-dimension-size-lg, 40px);
+  padding-block: var(--wpds-dimension-padding-sm, 8px);
+  padding-inline: var(--wpds-dimension-padding-sm, 8px);
+}
+
+.review-github-branch button > :first-child {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+}
+
+.review-github-branch-value {
+  display: flex;
+  align-items: center;
+  gap: var(--wpds-dimension-gap-xs, 4px);
+  min-width: 0;
+}
+
+.review-github-branch-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.review-github-repo {
+  font-weight: var(--wpds-typography-font-weight-emphasis);
+  white-space: nowrap;
+}
+
+.review-github-mark {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--wpds-color-foreground-content-neutral);
+  color: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.review-github-status {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wpds-dimension-gap-sm, 8px);
+  margin-top: auto;
+  padding: var(--wpds-dimension-padding-md, 12px)
+    var(--wpds-dimension-padding-2xl, 24px);
+  border-block-start: var(--wpds-border-width-xs) solid
+    var(--wpds-color-stroke-surface-neutral);
+}
+
+.review-github-status-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--wpds-dimension-gap-sm, 8px);
+  min-width: 0;
+}
+
+.review-github-avatar {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #d5d5d8;
+  color: #8a8a8e;
+}
+
+.review-github-status-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--wpds-color-background-surface-neutral-strong);
+  border-radius: 50%;
+  background: var(--wpds-color-foreground-content-success-weak, #008030);
+}
+
+.review-github-status button {
+  flex: 0 0 auto;
+  font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
 .change-list {
   margin: 0;
   padding-left: 1.2em;

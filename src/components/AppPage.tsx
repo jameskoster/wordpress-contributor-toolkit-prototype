@@ -27,6 +27,7 @@ type AppPageProps = {
   onToggleSidebar?: () => void
   sitesListOpen?: boolean
   onToggleSitesList?: () => void
+  onReview?: () => void
 }
 
 export function AppPage({
@@ -49,7 +50,10 @@ export function AppPage({
   onToggleSidebar,
   sitesListOpen = true,
   onToggleSitesList,
+  onReview,
 }: AppPageProps) {
+  const gutenberg = isGutenbergSite(site.checkoutType)
+
   return (
     <Page
       className="app-page"
@@ -75,10 +79,14 @@ export function AppPage({
             stopLabel="Stop build watch"
             onToggle={() => onToggleWatch?.()}
           />
-          <Button variant="solid" tone="brand" size="compact" disabled>
-            {isGutenbergSite(site.checkoutType)
-              ? 'Open PR...'
-              : 'Review & submit changes'}
+          <Button
+            variant="solid"
+            tone="brand"
+            size="compact"
+            disabled={gutenberg || !onReview}
+            onClick={() => onReview?.()}
+          >
+            {gutenberg ? 'Open PR...' : 'Review & submit changes'}
           </Button>
           {onToggleSidebar ? (
             <IconButton

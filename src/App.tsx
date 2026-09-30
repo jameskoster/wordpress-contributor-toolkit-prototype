@@ -7,7 +7,7 @@ import { AppFooter } from './components/AppFooter'
 import { AppPage } from './components/AppPage'
 import { BottomTray } from './components/BottomTray'
 import { CreateSiteDialog } from './components/CreateSiteDialog'
-import { ReviewChangesDialog } from './components/ReviewChangesDialog'
+import { ReviewChangesDrawer } from './components/ReviewChangesDrawer'
 import { SettingsDialog } from './components/SettingsDialog'
 import { DeleteDialog, FeedbackDialog, RenameDialog } from './components/SimpleDialogs'
 import { SiteDashboard } from './components/SiteDashboard'
@@ -72,6 +72,7 @@ export default function App() {
   )
   const [createOpen, setCreateOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [githubConnected, setGithubConnected] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -438,6 +439,7 @@ export default function App() {
               onToggleSitesList={() =>
                 setSitesListOpen((current) => !current)
               }
+              onReview={() => setReviewOpen(true)}
             >
               <div className="site-workspace-main">
                 <SiteDashboard
@@ -518,13 +520,21 @@ export default function App() {
 
       {site ? (
         <>
-          <ReviewChangesDialog
+          <ReviewChangesDrawer
             open={reviewOpen}
-            siteName={site.name}
+            githubConnected={githubConnected}
             onOpenChange={setReviewOpen}
-            onSubmit={() => {
-              setReviewOpen(false)
-              toast('Opened a pull request from the current changes.')
+            onGitHubConnected={() => setGithubConnected(true)}
+            onGitHubDisconnected={() => {
+              setGithubConnected(false)
+              toast('Disconnected from GitHub.')
+            }}
+            onCopyDeviceCode={() => toast('Device code copied.')}
+            onOpenPullRequest={(branch) => {
+              toast(`Opened a pull request against ${branch}.`)
+            }}
+            onDownloadPatch={() => {
+              toast('Downloaded a patch to attach to Trac.')
             }}
           />
           <RenameDialog
